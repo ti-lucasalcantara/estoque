@@ -21,6 +21,8 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
     $routes->group('produto', static function ($routes) {
         $routes->get('/', 'Produto::index', ['as' => 'restrito.produto.index']);
         $routes->get('form', 'Produto::formulario', ['as' => 'restrito.produto.formulario']);
+        $routes->get('editar/(:any)', 'Produto::formulario/$1', ['as' => 'restrito.produto.editar']);
+        $routes->post('salvar', 'Produto::salvar', ['as' => 'restrito.produto.salvar']);
 
         // Entradas    
         $routes->group('in', static function ($routes) {

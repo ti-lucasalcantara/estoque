@@ -33,6 +33,7 @@ class CriarTabelaProdutoImagem extends Migration
             ],
             'json' => [
                 'type'       => 'JSON',
+                'null'  => true,
             ],
             'created_at' => [
                 'type'    => 'TIMESTAMP',

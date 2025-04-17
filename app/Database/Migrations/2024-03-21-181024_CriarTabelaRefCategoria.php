@@ -23,7 +23,8 @@ class CriarTabelaRefCartegoria extends Migration
                 'constraint' => '255',
             ],
             'json' => [
-                'type'       => 'JSON',
+                'type'      => 'JSON',
+                'null'      => true,
             ],
             'created_at' => [
                 'type'    => 'TIMESTAMP',

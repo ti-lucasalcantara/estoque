@@ -34,44 +34,56 @@
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
-                <form id="formCadastroProduto">
+                <form id="formCadastroProduto" method="POST" action="<?=url_to('restrito.produto.salvar')?>" novalidate>
+                    <?php
+                    if(isset($produto) && !empty($produto['id_produto'])){
+                    ?>
+                    <input type="hidden" name="id_produto" value="<?=base64_encode($produto['id_produto'] ?? '')?>">
+                    <?php
+                    }
+                    ?>
                     <div class="row mb-3">
                         <div class="col-md-2">
-                            <label for="codigo" class="form-label">Código</label>
-                            <input type="text" class="form-control" id="codigo" name="codigo" placeholder="Código" required>
+                            <label for="codigo" class="form-label">*Código</label>
+                            <input type="text" class="form-control <?= empty(validation_show_error('codigo')) ? '' : 'is-invalid' ?>" id="codigo" name="codigo" placeholder="Código" value="<?= set_value('codigo', ($produto['codigo'] ?? '') ) ?>">
+                            <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('codigo') ?></small>
                         </div>
                         <div class="col-md-6">
-                            <label for="nome" class="form-label">Nome do Produto</label>
-                            <input type="text" class="form-control" id="nome" name="nome" placeholder="Digite o nome do produto" required>
+                            <label for="nome" class="form-label">*Nome do Produto</label>
+                            <input type="text" class="form-control <?= empty(validation_show_error('nome')) ? '' : 'is-invalid' ?>" id="nome" name="nome" placeholder="Digite o nome do produto" value="<?= set_value('nome', ($produto['nome'] ?? '')) ?>">
+                            <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('nome') ?></small>
                         </div>
                         <div class="col-md-4">
-                            <label for="categoria" class="form-label">Categoria</label>
+                            <label for="id_categoria" class="form-label">*Categoria</label>
                             <div class="input-group">
-                                <select class="form-select" id="categoria" name="categoria" required>
+                                <select class="form-select <?= empty(validation_show_error('id_categoria')) ? '' : 'is-invalid' ?>" id="id_categoria" name="id_categoria">
                                     <option value="">Selecione</option>
-                                    <option value="eletronico">Eletrônico</option>
-                                    <option value="vestuario">Vestuário</option>
-                                    <option value="alimento">Alimento</option>
+                                    <?php
+                                    if(isset($ref_categoria) && !empty($ref_categoria)){
+                                        foreach ($ref_categoria as $categoria) {
+                                    ?>
+                                    <option value="<?=$categoria['id_categoria']?>" <?= set_select('id_categoria', $categoria['id_categoria'], (isset($produto['id_categoria']) && $produto['id_categoria'] == $categoria['id_categoria'] ? true : false) )?>><?=$categoria['categoria']?></option>
+                                    <?php
+                                        }
+                                    }
+                                    ?>
                                     <!-- Outras opções -->
                                 </select>
                                 <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCategoria">
                                     <i class="fa fa-cog"></i>
                                 </button>
                             </div>
+                            <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('id_categoria') ?></small>
                         </div>
                     </div>
-
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="preco" class="form-label">Preço (R$)</label>
-                            <input type="number" class="form-control" id="preco" name="preco" placeholder="0,00" step="0.01" min="0" required>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label for="descricao" class="form-label">Descrição</label>
-                            <textarea class="form-control" id="descricao" name="descricao" rows="3" placeholder="Descrição do produto"></textarea>
+                            <textarea oninput="atualizarContador()" maxlength="500" class="form-control <?= empty(validation_show_error('descricao')) ? '' : 'is-invalid' ?>" id="descricao" name="descricao" rows="6" placeholder="Descrição do produto"><?=set_value('descricao', ($produto['descricao'] ?? ''))?></textarea>
+                            <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('descricao') ?></small>
+                            <small id="contadorDescricao" class="text-muted">Restam 500 caracteres</small>
                         </div>
                     </div>
-
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">Cadastrar Produto</button>
                     </div>
@@ -90,12 +102,19 @@
 
 <?= $this->section('js') ?>
 <script>
-$('#tabela_produtos').DataTable({
-    "scrollY": "800px", // Define a altura máxima com scroll
-    "scrollCollapse": true, // Mantém a tabela ajustada ao conteúdo
-    "paging": false, // Desativa a paginação
-    "ordering": false, // Ativa a ordenação
-    "info": false, // Oculta informações de registros (opcional)
-}); 
+
+function atualizarContador() {
+    const textarea = document.getElementById('descricao');
+    const contador = document.getElementById('contadorDescricao');
+    const maxCaracteres = 500;
+    const caracteresRestantes = maxCaracteres - textarea.value.length;
+    if( caracteresRestantes >= 0){
+        contador.textContent = `Restam ${caracteresRestantes} caracteres`;
+    }else{
+        contador.textContent = `Texto muito longo. O limite é de 500 caracteres.`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', atualizarContador);
 </script>
 <?= $this->endSection() ?>

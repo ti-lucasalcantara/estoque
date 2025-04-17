@@ -38,34 +38,36 @@
                 <table id="tabela_produtos" class="table table-hover table-striped">
                     <thead>
                         <tr>
-                            <th>A</th>
-                            <th>B</th>
-                            <th>C</th>
-                            <th>D</th>
-                            <th>E</th>
+                            <th>CÓDIGO</th>
+                            <th>PRODUTO</th>
+                            <th>CATEGORIA</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
-                            <th>A</th>
-                            <th>B</th>
-                            <th>C</th>
-                            <th>D</th>
-                            <th>E</th>
+                            <th>CÓDIGO</th>
+                            <th>PRODUTO</th>
+                            <th>CATEGORIA</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </tfoot>
                     <tbody>
                         <?php
-                        for ($i=0; $i < 10; $i++) { 
+                        if(isset($tb_produto) && !empty($tb_produto)){
+                            foreach ($tb_produto as $produto) {
                         ?>
                         <tr>
-                            <td>1</td>
-                            <td>2</td>
-                            <td>3</td>
-                            <td>4</td>
-                            <td>5</td>
+                            <td><?=$produto['codigo']?></td>
+                            <td><?=$produto['nome']?></td>
+                            <td><?=$produto['categoria']?></td>
+                            <td>-</td>
+                            <td><a href="<?=url_to('restrito.produto.editar', base64_encode($produto['id_produto']))?>">editar</a></td>
                         </tr>
                         <?php
+                            }
                         }
                         ?>
                     </tbody>

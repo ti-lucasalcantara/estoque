@@ -33,10 +33,12 @@ class CriarTabelaProduto extends Migration
                 'unsigned'       => true,
             ],
             'descricao' => [
-                'type'       => 'TEXT',
+                'type'  => 'TEXT',
+                'null'  => true,
             ],
             'json' => [
-                'type'       => 'JSON',
+                'type'    => 'JSON',
+                'null'    => true,
             ],
             'created_at' => [
                 'type'    => 'TIMESTAMP',

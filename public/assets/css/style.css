@@ -47909,7 +47909,7 @@ body.rtl {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
-    z-index: 999999;
+    z-index: 9999;
     box-shadow: 0 0.76rem 1.52rem rgba(18, 38, 63, 0.03);
     transition: padding-left 0.3s ease;
     border-bottom: 1px solid #e6ebf1 !important;

@@ -526,13 +526,13 @@
 					$("html[lang=en]").attr("dir", "rtl");
 					localStorage.setItem("rtl", "True");
 					$("head link#style").attr("href", $(this));
-					(document.getElementById("style")?.setAttribute("href", "../../assets/plugins/bootstrap/css/bootstrap.rtl.min.css"));
+					(document.getElementById("style")?.setAttribute("href", "/assets/plugins/bootstrap/css/bootstrap.rtl.min.css"));
 				} 
 				else {
 					$('body').removeClass('rtl');
 					localStorage.setItem("rtl", "false");
 					$("head link#style").attr("href", $(this));
-					(document.getElementById("style")?.setAttribute("href", "../../assets/plugins/bootstrap/css/bootstrap.min.css"));
+					(document.getElementById("style")?.setAttribute("href", "/assets/plugins/bootstrap/css/bootstrap.min.css"));
 				};
 		});
 

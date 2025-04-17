@@ -35,6 +35,9 @@
 	    <!-- Color Skin css -->
 		<link id="theme" href="/assets/colors/color1.css" rel="stylesheet" type="text/css"/>
 
+        <!-- toast -->
+        <link href="/assets/plugins/toast/css/jquery.growl.css" rel="stylesheet" type="text/css" />
+
         <?= $this->renderSection('css') ?>
 
 	</head>
@@ -206,6 +209,9 @@
         <!-- toast -->
         <script src="/assets/plugins/toast/js/jquery.growl.js" type="text/javascript"></script>
 
+        <!-- sweetalert2 -->
+        <script src="/assets/plugins/sweetalert/js/sweetalert2.all.min.js"></script>
+        
         <!-- inputmask -->
         <script src="/assets/plugins/inputmask/jquery.inputmask.min.js" type="text/javascript"></script>
 
@@ -240,6 +246,7 @@
             };
 
             function showToast(title = 'Atenção!', text = '-', type = 'default') {
+                
                 if (type === 'danger') type = 'error';
                 if (type === 'success') type = 'notice';
 
@@ -306,6 +313,11 @@
             }
         </script>
 
+        <?= $this->include('_componentes/toast') ?>
+        <?= $this->include('_componentes/sweet-alert') ?>
+        <?= $this->include('_componentes/modal-excluir') ?>
+
+        <!-- JS -->
         <?= $this->renderSection('js') ?>
 	</body>
 </html>
