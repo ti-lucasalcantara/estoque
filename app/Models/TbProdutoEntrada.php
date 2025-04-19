@@ -4,10 +4,10 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class RefCategoria extends Model
+class TbProdutoEntrada extends Model
 {
-    protected $table            = 'ref_categoria';
-    protected $primaryKey       = 'id_categoria';
+    protected $table            = 'tb_produto_entrada';
+    protected $primaryKey       = 'id_produto_entrada';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = true;

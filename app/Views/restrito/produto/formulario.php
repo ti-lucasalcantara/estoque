@@ -69,7 +69,7 @@
                                     ?>
                                     <!-- Outras opções -->
                                 </select>
-                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCategoria">
+                                <button data-bs-toggle="modal" data-bs-target="#modalRefCategoria" type="button" class="btn btn-outline-secondary">
                                     <i class="fa fa-cog"></i>
                                 </button>
                             </div>
@@ -94,15 +94,15 @@
 </div>
 <!-- End Row -->
 
-<?= $this->endSection() ?>
+<?= $this->include('_componentes/ref_categoria') ?>
 
+<?= $this->endSection() ?>
 
 <?= $this->section('css') ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('js') ?>
 <script>
-
 function atualizarContador() {
     const textarea = document.getElementById('descricao');
     const contador = document.getElementById('contadorDescricao');

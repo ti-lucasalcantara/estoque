@@ -3,7 +3,6 @@ namespace App\Controllers\Restrito;
 
 use App\Controllers\BaseController;
 use App\Models\TbProduto;
-use App\Models\TbProdutoEntrada;
 class Entrada extends BaseController
 {
     private $dados;
@@ -38,28 +37,32 @@ class Entrada extends BaseController
         }else{
 
             $edit = false;
-            $id_produto_entrada = $this->request->getPost('id_produto_entrada') ?? '';
-            if(isset($id_produto_entrada) && !empty($id_produto_entrada)){
-                $id_produto_entrada = base64_decode($id_produto_entrada);
+            $id_produto = $this->request->getPost('id_produto') ?? '';
+            if(isset($id_produto) && !empty($id_produto)){
+                $id_produto = base64_decode($id_produto);
                 $edit = true;
             }
-
             $rules = [
-                'data_entrada' => 'required|valid_date',
-                'quantidade' => 'required|is_natural_no_zero',
-                'observacoes'   => 'permit_empty|max_length[500]',
+                'nome' => 'required|max_length[255]',
+                'codigo' => 'required|max_length[100]|is_unique[tb_produto.codigo,id_produto,'.$id_produto.']',
+                'id_categoria' => 'required',
+                'descricao'   => 'permit_empty|max_length[500]',
             ];
 
             $messages   = [
-                'data_entrada' => [
+                'nome' => [
                     'required' => 'Campo obrigatório.',
-                    'valid_date' => 'Data inválida, verifique o campo informado.',
+                    'max_length' => 'A quantidade de caracteres informada está maior que o permitido.',
                 ],
-                'quantidade' => [
+                'id_categoria' => [
                     'required' => 'Campo obrigatório.',
-                    'is_natural_no_zero' => 'Campo inválido, verifique o campo informado.',
                 ],
-               'observacoes' => [
+                'codigo' => [
+                    'required' => 'Campo obrigatório.',
+                    'is_unique' => 'Código já existente.',
+                    'max_length' => 'A quantidade de caracteres informada está maior que o permitido.',
+                ],
+                'descricao' => [
                     'max_length' => 'A quantidade de caracteres informada está maior que o permitido, máximo 500 caracteres.',
                 ],
             ];
@@ -71,25 +74,25 @@ class Entrada extends BaseController
                 return redirect()->back()->withInput();   
             }
 
-            $id_produto     = $this->request->getPost('id_produto');
-            $data_entrada   = $this->request->getPost('data_entrada');
-            $quantidade     = $this->request->getPost('quantidade');
-            $observacoes    = $this->request->getPost('observacoes');
+            $nome           = $this->request->getPost('nome');
+            $codigo         = $this->request->getPost('codigo');
+            $id_categoria   = $this->request->getPost('id_categoria');
+            $descricao      = $this->request->getPost('descricao');
 
-            $entrada = [
-                'id_produto' => $id_produto,
-                'data_entrada' => $data_entrada,
-                'quantidade' => $quantidade,
-                'observacoes' => $observacoes,
+            $produto = [
+                'nome' => $nome,
+                'codigo' => $codigo,
+                'id_categoria' => $id_categoria,
+                'descricao' => $descricao,
             ];
 
             if($edit){
-                $entrada['id_produto_entrada'] = $id_produto_entrada;
+                $produto['id_produto'] = $id_produto;
             }
 
-            $TbProdutoEntrada = new TbProdutoEntrada();
+            $TbProduto = new TbProduto();
 
-            $save = $TbProdutoEntrada->save($entrada);
+            $save = $TbProduto->save($produto);
 
             if(!$save){
                 session()->setFlashdata(getMessageFail('sweetalert'));
@@ -97,7 +100,11 @@ class Entrada extends BaseController
             }
 
             session()->setFlashdata(getMessageSucess());
-            return redirect()->route('restrito.entrada.formulario', [base64_encode($id_produto)]);
+            
+            if($edit){
+                return redirect()->route('restrito.produto.editar', [base64_encode($id_produto)]);
+            }
+            return redirect()->route('restrito.produto.index');
         }
     }
 }

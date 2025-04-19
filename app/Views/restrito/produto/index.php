@@ -43,6 +43,7 @@
                             <th>CATEGORIA</th>
                             <th></th>
                             <th></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -50,6 +51,7 @@
                             <th>CÓDIGO</th>
                             <th>PRODUTO</th>
                             <th>CATEGORIA</th>
+                            <th></th>
                             <th></th>
                             <th></th>
                         </tr>
@@ -63,8 +65,9 @@
                             <td><?=$produto['codigo']?></td>
                             <td><?=$produto['nome']?></td>
                             <td><?=$produto['categoria']?></td>
-                            <td>-</td>
                             <td><a href="<?=url_to('restrito.produto.editar', base64_encode($produto['id_produto']))?>">editar</a></td>
+                            <td><a href="javascript:void(0);" data-id-excluir="<?=$produto['id_produto']?>" data-url-excluir="<?=url_to('restrito.produto.excluir')?>" data-mensagem-excluir="Confirma excluir o produto [<?=$produto['nome']?>] ?" class="modalExcluir">excluir</a></td>
+                            <td><a href="<?=url_to('restrito.entrada.formulario', base64_encode($produto['id_produto']))?>">entrada</a></td>
                         </tr>
                         <?php
                             }

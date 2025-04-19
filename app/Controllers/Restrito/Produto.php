@@ -113,4 +113,18 @@ class Produto extends \App\Controllers\BaseController
         }
     }
 
+    
+    public function excluir() 
+    {
+        if ( ! $this->request->is('post') ) {
+            return $this->response->setJSON( getMessageFail() )->setStatusCode(401);
+        }else{
+            if(! (new TbProduto())->delete($this->request->getPost('id')) ){
+                return $this->response->setJSON( getMessageFail() )->setStatusCode(401);
+            }else{
+                return $this->response->setJSON( getMessageSucess() )->setStatusCode(200);
+            }
+        }
+    }
+
 }

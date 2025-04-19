@@ -23,11 +23,14 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
         $routes->get('form', 'Produto::formulario', ['as' => 'restrito.produto.formulario']);
         $routes->get('editar/(:any)', 'Produto::formulario/$1', ['as' => 'restrito.produto.editar']);
         $routes->post('salvar', 'Produto::salvar', ['as' => 'restrito.produto.salvar']);
+        $routes->post('excluir', 'Produto::excluir', ['as' => 'restrito.produto.excluir']);
 
         // Entradas    
-        $routes->group('in', static function ($routes) {
+        $routes->group('in', function ($routes) {
             $routes->get('/', 'Entrada::index', ['as' => 'restrito.entrada.index']);
-            $routes->get('form', 'Entrada::formulario', ['as' => 'restrito.entrada.formulario']);
+            $routes->get('(:any)/listar', 'Entrada::index/$1', ['as' => 'restrito.entrada.listar']);
+            $routes->get('(:any)/form', 'Entrada::formulario/$1', ['as' => 'restrito.entrada.formulario']);
+            $routes->post('salvar', 'Entrada::salvar', ['as' => 'restrito.entrada.salvar']);
         });
 
         // Saida    
@@ -38,5 +41,8 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
         
     });
 
+
+    // Ref Categoria
+    $routes->post('salvar', 'RefCategoria::salvar', ['as' => 'restrito.refCategoria.salvar']);
 
 });
