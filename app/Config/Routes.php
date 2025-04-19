@@ -27,7 +27,12 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
 
         // Entradas    
         $routes->group('in', function ($routes) {
+            // Em lote
             $routes->get('/', 'Entrada::index', ['as' => 'restrito.entrada.index']);
+            $routes->get('form', 'Entrada::form', ['as' => 'restrito.entrada.index']);
+            $routes->post('salvar-multiplas', 'Entrada::salvarMultiplas', ['as' => 'restrito.entrada.salvarMultiplas']);
+
+            // Por produto
             $routes->get('(:any)/listar', 'Entrada::index/$1', ['as' => 'restrito.entrada.listar']);
             $routes->get('(:any)/form', 'Entrada::formulario/$1', ['as' => 'restrito.entrada.formulario']);
             $routes->post('salvar', 'Entrada::salvar', ['as' => 'restrito.entrada.salvar']);
