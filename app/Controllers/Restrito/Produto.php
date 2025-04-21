@@ -15,7 +15,7 @@ class Produto extends \App\Controllers\BaseController
     public function index()
     {
         $this->dados['tb_produto'] = (new TbProduto())
-                                    ->select('tb_produto.*, ref_categoria.categoria')
+                                    ->select('tb_produto.*, ref_categoria.categoria, fn_saldo_estoque(tb_produto.id_produto) AS "saldoEstoque" ')
                                     ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
                                     ->findAll();
         return view('restrito/produto/index', $this->dados);

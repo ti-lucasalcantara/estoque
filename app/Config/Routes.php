@@ -29,19 +29,30 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
         $routes->group('in', function ($routes) {
             // Em lote
             $routes->get('/', 'Entrada::index', ['as' => 'restrito.entrada.index']);
-            $routes->get('form', 'Entrada::form', ['as' => 'restrito.entrada.index']);
+            $routes->get('form', 'Entrada::formularioMultiplas', ['as' => 'restrito.entrada.formularioMultiplas']);
             $routes->post('salvar-multiplas', 'Entrada::salvarMultiplas', ['as' => 'restrito.entrada.salvarMultiplas']);
 
             // Por produto
             $routes->get('(:any)/listar', 'Entrada::index/$1', ['as' => 'restrito.entrada.listar']);
             $routes->get('(:any)/form', 'Entrada::formulario/$1', ['as' => 'restrito.entrada.formulario']);
+            $routes->get('(:any)/editar/(:any)', 'Entrada::formulario/$1/$2', ['as' => 'restrito.entrada.editar']);
             $routes->post('salvar', 'Entrada::salvar', ['as' => 'restrito.entrada.salvar']);
+            $routes->post('excluir', 'Entrada::excluir', ['as' => 'restrito.entrada.excluir']);
         });
 
-        // Saida    
-        $routes->group('out', static function ($routes) {
+         // Saídas    
+         $routes->group('out', function ($routes) {
+            // Em lote
             $routes->get('/', 'Saida::index', ['as' => 'restrito.saida.index']);
-            $routes->get('form', 'Saida::formulario', ['as' => 'restrito.saida.formulario']);
+            $routes->get('form', 'Saida::formularioMultiplas', ['as' => 'restrito.saida.formularioMultiplas']);
+            $routes->post('salvar-multiplas', 'Saida::salvarMultiplas', ['as' => 'restrito.saida.salvarMultiplas']);
+
+            // Por produto
+            $routes->get('(:any)/listar', 'Saida::index/$1', ['as' => 'restrito.saida.listar']);
+            $routes->get('(:any)/form', 'Saida::formulario/$1', ['as' => 'restrito.saida.formulario']);
+            $routes->get('(:any)/editar/(:any)', 'Saida::formulario/$1/$2', ['as' => 'restrito.saida.editar']);
+            $routes->post('salvar', 'Saida::salvar', ['as' => 'restrito.saida.salvar']);
+            $routes->post('excluir', 'Saida::excluir', ['as' => 'restrito.saida.excluir']);
         });
         
     });

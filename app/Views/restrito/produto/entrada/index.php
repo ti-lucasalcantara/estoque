@@ -10,21 +10,10 @@
     </div>
     <div class="page-rightheader">
         <div class="btn-list">
-            <a href="<?=url_to('restrito.produto.formulario')?>" class="btn btn-outline-primary"><i class="fe fe-download me-2"></i>
-                Cadastrar Produto
+            <a href="<?=url_to('restrito.entrada.formularioMultiplas')?>" class="btn btn-outline-primary">
+                <i class="fe fe-plus me-2"></i>
+                Cadastrar Entradas
             </a>
-
-            <a href="javascript:void(0);"  class="btn btn-primary btn-pill" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fa fa-calendar me-2 fs-14"></i> Search By Date</a>
-            <div class="dropdown-menu border-0">
-                    <a class="dropdown-item" href="javascript:void(0);">Today</a>
-                    <a class="dropdown-item" href="javascript:void(0);">Yesterday</a>
-                    <a class="dropdown-item active" href="javascript:void(0);">Last 7 days</a>
-                    <a class="dropdown-item" href="javascript:void(0);">Last 30 days</a>
-                    <a class="dropdown-item" href="javascript:void(0);">Last Month</a>
-                    <a class="dropdown-item" href="javascript:void(0);">Last 6 months</a>
-                    <a class="dropdown-item" href="javascript:void(0);">Last year</a>
-            </div>
         </div>
     </div>
 </div>
@@ -38,34 +27,36 @@
                 <table id="tabela_produtos" class="table table-hover table-striped">
                     <thead>
                         <tr>
-                            <th>A</th>
-                            <th>B</th>
-                            <th>C</th>
-                            <th>D</th>
-                            <th>E</th>
+                            <th>DATA</th>
+                            <th>PRODUTO</th>
+                            <th>QTD</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
-                            <th>A</th>
-                            <th>B</th>
-                            <th>C</th>
-                            <th>D</th>
-                            <th>E</th>
+                            <th>DATA</th>
+                            <th>PRODUTO</th>
+                            <th>QTD</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </tfoot>
                     <tbody>
                         <?php
-                        for ($i=0; $i < 10; $i++) { 
-                        ?>
-                        <tr>
-                            <td>1</td>
-                            <td>2</td>
-                            <td>3</td>
-                            <td>4</td>
-                            <td>5</td>
-                        </tr>
-                        <?php
+                        if(isset($tb_produto_entrada) && !empty($tb_produto_entrada)){
+                            foreach ($tb_produto_entrada as $entrada) { 
+                            ?>
+                            <tr>
+                                <td><?=dataPTBR($entrada['data_entrada']);?></td>
+                                <td><?=$entrada['produto'];?><br><small><?=$entrada['categoria'];?></small></td>
+                                <td><?=$entrada['quantidade'];?></td>
+                                <td><a href="<?=url_to('restrito.entrada.editar', base64_encode($entrada['id_produto']), base64_encode($entrada['id_produto_entrada']) )?>">editar</a></td>
+                                <td><a href="javascript:void(0);" data-id-excluir="<?=$entrada['id_produto_entrada']?>" data-url-excluir="<?=url_to('restrito.entrada.excluir')?>" data-mensagem-excluir="Confirma excluir entrada [<?=$entrada['quantidade'];?>] do produto [<?=$entrada['produto']?>] ?" class="modalExcluir">excluir</a></td>
+                            </tr>
+                            <?php
+                            }
                         }
                         ?>
                     </tbody>

@@ -14,10 +14,19 @@ class Entrada extends BaseController
     
     public function index($id_produto=null)
     {
+        $TbProdutoEntrada = new TbProdutoEntrada();
+
+        $this->dados['tb_produto_entrada'] = $TbProdutoEntrada
+                                                ->select('tb_produto_entrada.*, tb_produto.nome AS "produto", ref_categoria.categoria')
+                                                ->join('tb_produto', 'tb_produto.id_produto=tb_produto_entrada.id_produto')
+                                                ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
+                                                ->orderBy('data_entrada', 'DESC')
+                                                ->findAll();
+
         return view('restrito/produto/entrada/index', $this->dados);
     }
 
-    public function formulario($id_produto=null)
+    public function formulario($id_produto=null, $id_produto_entrada=null)
     {
         if($id_produto){
             $id_produto = base64_decode($id_produto);
@@ -27,10 +36,10 @@ class Entrada extends BaseController
                                     ->find($id_produto);
         }
 
-        $this->dados['produtos'] = (new TbProduto())
-        ->select('tb_produto.*, ref_categoria.categoria')
-        ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
-        ->findAll();
+        if($id_produto_entrada){
+            $id_produto_entrada = base64_decode($id_produto_entrada);
+            $this->dados['produto_entrada'] = (new TbProdutoEntrada())->find($id_produto_entrada);
+        }
 
         return view('restrito/produto/entrada/formulario', $this->dados);
     }
@@ -78,58 +87,58 @@ class Entrada extends BaseController
 
             $TbProdutoEntrada = new TbProdutoEntrada();
             
+            $id_produto   = $this->request->getPost('id_produto');
+            $quantidade   = $this->request->getPost('quantidade');
             $data_entrada = $this->request->getPost('data_entrada');
             $observacoes  = $this->request->getPost('observacoes');
 
-            foreach ($this->request->getPost('produtos') as $produto) {
-                $id_produto  = $produto['id_produto'];
-                $quantidade  = $produto['quantidade'];
+            $entrada = [
+                'id_produto'   => $id_produto,
+                'data_entrada' => $data_entrada,
+                'quantidade'   => $quantidade,
+                'observacoes'  => $observacoes,
+            ];
 
-                $entrada = [
-                    'id_produto'   => $id_produto,
-                    'data_entrada' => $data_entrada,
-                    'quantidade'   => $quantidade,
-                    'observacoes'  => $observacoes,
-                ];
+            if($edit){
+                $entrada['id_produto_entrada'] = $id_produto_entrada;
+            }
 
-                if($edit){
-                    $entrada['id_produto_entrada'] = $id_produto_entrada;
-                }
+            $save = $TbProdutoEntrada->save($entrada);
 
-                $save = $TbProdutoEntrada->save($entrada);
-
-                if(!$save){
-                    session()->setFlashdata(getMessageFail('sweetalert'));
-                    return redirect()->back()->withInput();
-                }
+            if(!$save){
+                session()->setFlashdata(getMessageFail('sweetalert'));
+                return redirect()->back()->withInput();
             }
 
             session()->setFlashdata(getMessageSucess());
-            return redirect()->route('restrito.entrada.formulario', [base64_encode($id_produto)]);
 
+            if($edit){
+                return redirect()->route('restrito.entrada.editar', [base64_encode($id_produto), base64_encode($id_produto_entrada)]);
+            }
+            return redirect()->route('restrito.entrada.formulario', [base64_encode($id_produto)]);
         }
     }
 
 
+    public function formularioMultiplas()
+    {
+        $this->dados['produtos'] = (new TbProduto())
+        ->select('tb_produto.*, ref_categoria.categoria')
+        ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
+        ->findAll();
+
+        return view('restrito/produto/entrada/formulario_multiplas', $this->dados);
+    }
+
     public function salvarMultiplas()
     {
-        dd($this->request->getPost());
-
         if ( ! $this->request->is('post') ) {
             session()->setFlashdata( getMessageFail() );
             return redirect()->back()->withInput();   
         }else{
 
-            $edit = false;
-            $id_produto_entrada = $this->request->getPost('id_produto_entrada') ?? '';
-            if(isset($id_produto_entrada) && !empty($id_produto_entrada)){
-                $id_produto_entrada = base64_decode($id_produto_entrada);
-                $edit = true;
-            }
-
             $rules = [
                 'data_entrada' => 'required|valid_date',
-                'quantidade' => 'required|is_natural_no_zero',
                 'observacoes'   => 'permit_empty|max_length[500]',
             ];
 
@@ -137,10 +146,6 @@ class Entrada extends BaseController
                 'data_entrada' => [
                     'required' => 'Campo obrigatório.',
                     'valid_date' => 'Data inválida, verifique o campo informado.',
-                ],
-                'quantidade' => [
-                    'required' => 'Campo obrigatório.',
-                    'is_natural_no_zero' => 'Campo inválido, verifique o campo informado.',
                 ],
                'observacoes' => [
                     'max_length' => 'A quantidade de caracteres informada está maior que o permitido, máximo 500 caracteres.',
@@ -154,25 +159,28 @@ class Entrada extends BaseController
                 return redirect()->back()->withInput();   
             }
 
-            $id_produto     = $this->request->getPost('id_produto');
+            $entradas = array();
+
+            $produtos = $this->request->getPost('produtos');
+
             $data_entrada   = $this->request->getPost('data_entrada');
-            $quantidade     = $this->request->getPost('quantidade');
             $observacoes    = $this->request->getPost('observacoes');
+          
+            foreach ($produtos as $produto) {
+                $id_produto = $produto['id_produto'];
+                $quantidade = $produto['quantidade'];
 
-            $entrada = [
-                'id_produto' => $id_produto,
-                'data_entrada' => $data_entrada,
-                'quantidade' => $quantidade,
-                'observacoes' => $observacoes,
-            ];
+                array_push($entradas, [
+                    'id_produto' => $id_produto,
+                    'data_entrada' => $data_entrada,
+                    'quantidade' => $quantidade,
+                    'observacoes' => $observacoes,
+                ]);
 
-            if($edit){
-                $entrada['id_produto_entrada'] = $id_produto_entrada;
             }
 
             $TbProdutoEntrada = new TbProdutoEntrada();
-
-            $save = $TbProdutoEntrada->save($entrada);
+            $save = $TbProdutoEntrada->insertBatch($entradas);
 
             if(!$save){
                 session()->setFlashdata(getMessageFail('sweetalert'));
@@ -180,7 +188,20 @@ class Entrada extends BaseController
             }
 
             session()->setFlashdata(getMessageSucess());
-            return redirect()->route('restrito.entrada.formulario', [base64_encode($id_produto)]);
+            return redirect()->route('restrito.entrada.index');
+        }
+    }
+        
+    public function excluir() 
+    {
+        if ( ! $this->request->is('post') ) {
+            return $this->response->setJSON( getMessageFail() )->setStatusCode(401);
+        }else{
+            if(! (new TbProdutoEntrada())->delete($this->request->getPost('id')) ){
+                return $this->response->setJSON( getMessageFail() )->setStatusCode(401);
+            }else{
+                return $this->response->setJSON( getMessageSucess() )->setStatusCode(200);
+            }
         }
     }
 }

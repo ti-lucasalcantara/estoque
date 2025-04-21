@@ -1,136 +1,84 @@
 <?= $this->extend('restrito/template/principal') ?>
 
 <?= $this->section('conteudo') ?>
+
+<!-- Page header -->
 <div class="page-header">
     <div class="page-leftheader">
-        <h4 class="page-title mb-0 text-primary">Entradas Múltiplas de Produtos</h4>
+        <h4 class="page-title mb-0 text-primary">Entrada de Produto</h4>
+    </div>
+    <div class="page-rightheader">
+        <a href="<?= url_to('restrito.produto.index') ?>" class="btn btn-outline-primary">
+            <i class="fe fe-arrow-left me-2"></i> Voltar
+        </a>
     </div>
 </div>
+<!-- End Page header -->
 
-<form method="POST" action="<?=url_to('restrito.entrada.salvarMultiplas')?>" id="formEntradasMultiplas">
-    <div class="card">
-        <div class="card-body">
-
-            <!-- Campos gerais -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">*Data da Entrada</label>
-                    <input type="date" name="data_entrada" class="form-control"  max="<?= date('Y-m-d') ?>">
+<!-- Row -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <!-- Destaque do Produto -->
+                <div class="mb-5 pb-3 border-bottom">
+                    <h3 class="text-dark mb-1"><strong><?= esc($produto['nome']) ?></strong></h3>
+                    <h6 class="text-muted">Código: <?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">*Localização</label>
-                    <select name="localizacao" class="form-select" >
-                        <option value="">Selecione</option>
-                        <option value="Loja">Loja</option>
-                        <option value="Depósito 1">Depósito 1</option>
-                        <option value="Depósito 2">Depósito 2</option>
-                    </select>
-                </div>
-            </div>
 
-            <!-- Linhas dinâmicas de produtos -->
-            <div id="linhasEntradas">
-                <div class="row entrada-linha mb-3 align-items-end">
-                    <div class="col-md-8">
-                        <label class="form-label">*Produto</label>
-                        <select name="produtos[0][id_produto]" class="form-select select-produto" >
-                            <option value="">Selecione</option>
-                            <?php foreach ($produtos as $p): ?>
-                                <option value="<?= $p['id_produto'] ?>"><?= esc($p['nome']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                <form method="POST" action="<?= url_to('restrito.entrada.salvar') ?>">
+                    <input type="hidden" name="id_produto" value="<?=$produto['id_produto']?>">
+
+                    <?php
+                    if(isset($produto_entrada) && !empty($produto_entrada['id_produto_entrada'])){
+                    ?>
+                    <input type="hidden" name="id_produto_entrada" value="<?=base64_encode($produto_entrada['id_produto_entrada'] ?? '')?>">
+                    <?php
+                    }
+                    ?>
+
+                    <div class="row mb-4">
+                        <div class="col-md-2">
+                            <label for="data_entrada" class="form-label">*Data da Entrada</label>
+                            <input type="date" class="form-control <?= empty(validation_show_error('data_entrada')) ? '' : 'is-invalid' ?>" id="data_entrada" name="data_entrada" value="<?= set_value('data_entrada', (isset($produto_entrada['data_entrada']) ? (date('Y-m-d',strtotime($produto_entrada['data_entrada']))) : '')    ) ?>" max="<?=date('Y-m-d')?>">
+                            <small class="text-danger"><?= validation_show_error('data_entrada') ?></small>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="quantidade" class="form-label">*Quantidade</label>
+                            <input type="number" class="form-control <?= empty(validation_show_error('quantidade')) ? '' : 'is-invalid' ?>" id="quantidade" name="quantidade" placeholder="Ex: 100" value="<?= set_value('quantidade', ($produto_entrada['quantidade'] ?? '')) ?>">
+                            <small class="text-danger"><?= validation_show_error('quantidade') ?></small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="localizacao" class="form-label">*Localização</label>
+                            <select class="form-select <?= empty(validation_show_error('id_categoria')) ? '' : 'is-invalid' ?>" id="id_categoria" name="id_categoria">
+                                <option value="">Selecione</option>
+                                <option value="Loja" <?= set_select('localizacao', 'Loja') ?>>Loja</option>
+                                <option value="Depósito 1" <?= set_select('localizacao', 'Depósito 1') ?>>Depósito 1</option>
+                                <option value="Depósito 2" <?= set_select('localizacao', 'Depósito 2') ?>>Depósito 2</option>
+                            </select>
+                            <small class="text-danger"><?= validation_show_error('localizacao') ?></small>
+                        </div>
                     </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label">*Quantidade</label>
-                        <input type="number" name="produtos[0][quantidade]" class="form-control" >
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label for="observacoes" class="form-label">Observações</label>
+                            <textarea class="form-control" name="observacoes" id="observacoes" rows="3" placeholder="Informações adicionais"><?= set_value('observacoes', ($produto_entrada['observacoes'] ?? '')) ?></textarea>
+                        </div>
                     </div>
 
-                    <div class="col-md-1 d-flex gap-2">
-                        <button type="button" class="btn btn-outline-success w-50 btn-add-linha">
-                            <i class="fe fe-plus"></i>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fe fe-check-circle me-2"></i> Registrar Entrada
                         </button>
                     </div>
-                </div>
-            </div>
+                </form>
 
-            <div class="text-end mt-4">
-                <button type="submit" class="btn btn-success px-4">
-                    <i class="fe fe-check me-2"></i>Registrar Todas as Entradas
-                </button>
             </div>
-
         </div>
     </div>
-</form>
-<?= $this->endSection() ?>
+</div>
+<!-- End Row -->
 
-<?= $this->section('js') ?>
-<script>
-let index = 1;
-
-function atualizarSelectsDisponiveis() {
-    const todosSelecionados = [...document.querySelectorAll('.select-produto')]
-        .map(select => select.value)
-        .filter(v => v !== "");
-
-    document.querySelectorAll('.select-produto').forEach(select => {
-        const valorAtual = select.value;
-
-        [...select.options].forEach(option => {
-            if (option.value === "" || option.value === valorAtual) {
-                option.disabled = false;
-            } else {
-                option.disabled = todosSelecionados.includes(option.value);
-            }
-        });
-    });
-}
-
-document.addEventListener('change', function (e) {
-    if (e.target.classList.contains('select-produto')) {
-        atualizarSelectsDisponiveis();
-    }
-});
-
-document.addEventListener('click', function (e) {
-    if (e.target.closest('.btn-add-linha')) {
-        e.preventDefault();
-
-        const linhaAtual = e.target.closest('.entrada-linha');
-        const novaLinha = linhaAtual.cloneNode(true);
-
-        // Atualiza os nomes dos inputs
-        novaLinha.querySelectorAll('input, select').forEach(input => {
-            if (input.name) {
-                input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
-            }
-            input.value = '';
-        });
-
-        // Configura os botões
-        const btnArea = novaLinha.querySelector('.col-md-1');
-        btnArea.innerHTML = `
-            <button type="button" class="btn btn-outline-success w-50 btn-add-linha me-1">
-                <i class="fe fe-plus"></i>
-            </button>
-            <button type="button" class="btn btn-outline-danger w-50 btn-remove-linha">
-                <i class="fe fe-trash"></i>
-            </button>
-        `;
-
-        document.querySelector('#linhasEntradas').appendChild(novaLinha);
-        index++;
-
-        atualizarSelectsDisponiveis();
-    }
-
-    if (e.target.closest('.btn-remove-linha')) {
-        e.preventDefault();
-        const linha = e.target.closest('.entrada-linha');
-        linha.remove();
-        atualizarSelectsDisponiveis();
-    }
-});
-</script>
 <?= $this->endSection() ?>

@@ -5,7 +5,7 @@
 <!-- Page header -->
 <div class="page-header">
     <div class="page-leftheader">
-        <h4 class="page-title mb-0 text-primary">Entrada de Produto</h4>
+        <h4 class="page-title mb-0 text-primary">Saída de Produto</h4>
     </div>
     <div class="page-rightheader">
         <a href="<?= url_to('restrito.produto.index') ?>" class="btn btn-outline-primary">
@@ -20,25 +20,32 @@
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
-
                 <!-- Destaque do Produto -->
                 <div class="mb-5 pb-3 border-bottom">
                     <h3 class="text-dark mb-1"><strong><?= esc($produto['nome']) ?></strong></h3>
                     <h6 class="text-muted">Código: <?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
                 </div>
 
-                <form method="POST" action="<?= url_to('restrito.entrada.salvar') ?>">
-                    <input type="hidden" name="produtos[0][id_produto]" value="<?=$produto['id_produto']?>">
+                <form method="POST" action="<?= url_to('restrito.saida.salvar') ?>">
+                    <input type="hidden" name="id_produto" value="<?=$produto['id_produto']?>">
+
+                    <?php
+                    if(isset($produto_saida) && !empty($produto_saida['id_produto_saida'])){
+                    ?>
+                    <input type="hidden" name="id_produto_saida" value="<?=base64_encode($produto_saida['id_produto_saida'] ?? '')?>">
+                    <?php
+                    }
+                    ?>
 
                     <div class="row mb-4">
                         <div class="col-md-2">
-                            <label for="data_entrada" class="form-label">*Data da Entrada</label>
-                            <input type="date" class="form-control <?= empty(validation_show_error('data_entrada')) ? '' : 'is-invalid' ?>" id="data_entrada" name="data_entrada" value="<?= set_value('data_entrada') ?>" max="<?=date('Y-m-d')?>">
-                            <small class="text-danger"><?= validation_show_error('data_entrada') ?></small>
+                            <label for="data_saida" class="form-label">*Data da saida</label>
+                            <input type="date" class="form-control <?= empty(validation_show_error('data_saida')) ? '' : 'is-invalid' ?>" id="data_saida" name="data_saida" value="<?= set_value('data_saida', (isset($produto_saida['data_saida']) ? (date('Y-m-d',strtotime($produto_saida['data_saida']))) : '')    ) ?>" max="<?=date('Y-m-d')?>">
+                            <small class="text-danger"><?= validation_show_error('data_saida') ?></small>
                         </div>
                         <div class="col-md-2">
                             <label for="quantidade" class="form-label">*Quantidade</label>
-                            <input type="number" class="form-control <?= empty(validation_show_error('quantidade')) ? '' : 'is-invalid' ?>" id="quantidade" name="produtos[0][quantidade]" placeholder="Ex: 100" value="<?= set_value('quantidade') ?>">
+                            <input type="number" class="form-control <?= empty(validation_show_error('quantidade')) ? '' : 'is-invalid' ?>" id="quantidade" name="quantidade" placeholder="Ex: 100" value="<?= set_value('quantidade', ($produto_saida['quantidade'] ?? '')) ?>">
                             <small class="text-danger"><?= validation_show_error('quantidade') ?></small>
                         </div>
 
@@ -57,13 +64,13 @@
                     <div class="row mb-4">
                         <div class="col-md-12">
                             <label for="observacoes" class="form-label">Observações</label>
-                            <textarea class="form-control" name="observacoes" id="observacoes" rows="3" placeholder="Informações adicionais"><?= set_value('observacoes') ?></textarea>
+                            <textarea class="form-control" name="observacoes" id="observacoes" rows="3" placeholder="Informações adicionais"><?= set_value('observacoes', ($produto_saida['observacoes'] ?? '')) ?></textarea>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-success">
-                            <i class="fe fe-check-circle me-2"></i> Registrar Entrada
+                            <i class="fe fe-check-circle me-2"></i> Registrar saida
                         </button>
                     </div>
                 </form>
