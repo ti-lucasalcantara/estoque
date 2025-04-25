@@ -37,12 +37,19 @@
                             <input type="text" class="form-control <?= empty(validation_show_error('codigo')) ? '' : 'is-invalid' ?>" id="codigo" name="codigo" placeholder="Código" value="<?= set_value('codigo', ($produto['codigo'] ?? '') ) ?>">
                             <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('codigo') ?></small>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <label for="nome" class="form-label">*Nome do Produto</label>
                             <input type="text" class="form-control <?= empty(validation_show_error('nome')) ? '' : 'is-invalid' ?>" id="nome" name="nome" placeholder="Digite o nome do produto" value="<?= set_value('nome', ($produto['nome'] ?? '')) ?>">
                             <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('nome') ?></small>
                         </div>
-                        <div class="col-md-4">
+
+                        <div class="col-md-2">
+                            <label for="estoque_minimo" class="form-label">*Estoque Minímo</label>
+                            <input type="text" class="form-control <?= empty(validation_show_error('estoque_minimo')) ? '' : 'is-invalid' ?>" id="estoque_minimo" name="estoque_minimo" placeholder="Ex.: 20" value="<?= set_value('estoque_minimo', ($produto['estoque_minimo'] ?? '')) ?>">
+                            <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('estoque_minimo') ?></small>
+                        </div>
+
+                        <div class="col-md-3">
                             <label for="id_categoria" class="form-label">*Categoria</label>
                             <div class="input-group">
                                 <select class="form-select <?= empty(validation_show_error('id_categoria')) ? '' : 'is-invalid' ?>" id="id_categoria" name="id_categoria">

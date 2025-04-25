@@ -51,6 +51,7 @@ class Produto extends \App\Controllers\BaseController
                 'nome' => 'required|max_length[255]',
                 'codigo' => 'required|max_length[100]|is_unique[tb_produto.codigo,id_produto,'.$id_produto.']',
                 'id_categoria' => 'required',
+                'estoque_minimo' => 'required',
                 'descricao'   => 'permit_empty|max_length[500]',
             ];
 
@@ -70,6 +71,9 @@ class Produto extends \App\Controllers\BaseController
                 'descricao' => [
                     'max_length' => 'A quantidade de caracteres informada está maior que o permitido, máximo 500 caracteres.',
                 ],
+                'estoque_minimo' => [
+                    'required' => 'Campo obrigatório.',
+                ],
             ];
 
             $validation = \Config\Services::validation();
@@ -83,12 +87,14 @@ class Produto extends \App\Controllers\BaseController
             $codigo         = $this->request->getPost('codigo');
             $id_categoria   = $this->request->getPost('id_categoria');
             $descricao      = $this->request->getPost('descricao');
+            $estoque_minimo = $this->request->getPost('estoque_minimo');
 
             $produto = [
                 'nome' => $nome,
                 'codigo' => $codigo,
                 'id_categoria' => $id_categoria,
                 'descricao' => $descricao,
+                'estoque_minimo' => $estoque_minimo,
             ];
 
             if($edit){

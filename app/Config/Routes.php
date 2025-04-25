@@ -61,4 +61,13 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
     // Ref Categoria
     $routes->post('salvar', 'RefCategoria::salvar', ['as' => 'restrito.refCategoria.salvar']);
 
+    // Relatórios    
+    $routes->group('relatorios', static function ($routes) {
+        $routes->get('/', 'Relatorio::index', ['as' => 'restrito.relatorio.index']);
+
+        $routes->get('saldo-estoque', 'Relatorio::saldoEstoque', ['as' => 'restrito.relatorio.saldoEstoque']);
+        $routes->get('movimento', 'Relatorio::movimentacaoProduto', ['as' => 'restrito.relatorio.movimentacaoProduto']);
+        
+    });
+
 });

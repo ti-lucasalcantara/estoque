@@ -38,6 +38,53 @@
         <!-- toast -->
         <link href="/assets/plugins/toast/css/jquery.growl.css" rel="stylesheet" type="text/css" />
 
+        <!-- select2 -->
+        <link href="/assets/plugins/select2/select2.min.css" rel="stylesheet">
+
+        <style>
+            :root{
+                --cor-logo-vermelho: #F75C5C;
+                --cor-logo-cinza: #C6C6C6;
+                --cor-logo-amarelo: #FBC24B;
+                --cor-logo-preto: #2B2B2B;
+            }
+            .logo {
+                text-align: left;
+            }
+
+            .dots {
+                display: flex;
+                justify-content: left;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            .dot {
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+            .red { background-color:var(--cor-logo-vermelho); }
+            .gray { background-color:var(--cor-logo-cinza); }
+            .yellow { background-color: var(--cor-logo-amarelo); }
+
+            .mov {
+                letter-spacing: 3px;
+                font-size: 12px;
+                font-weight: 400;
+                color: #444;
+            }
+
+            .carvalho {
+                font-size: 14px;
+                letter-spacing: 6px;
+                font-weight: 600;
+                color: #2B2B2B;
+                margin-top: 5px;
+            }
+        </style>
         <?= $this->renderSection('css') ?>
 
 	</head>
@@ -50,45 +97,54 @@
 
 				<!--aside open-->
 				<aside class="app-sidebar">
-					<div class="app-sidebar__logo">
-						<a class="header-brand" href="index.html">
-							<img src="/assets/images/brand/logo.png" class="header-brand-img desktop-lgo" alt="Azea logo">
-							<img src="/assets/images/brand/logo1.png" class="header-brand-img dark-logo" alt="Azea logo">
-							<img src="/assets/images/brand/favicon.png" class="header-brand-img mobile-logo" alt="Azea logo">
-							<img src="/assets/images/brand/favicon1.png" class="header-brand-img darkmobile-logo" alt="Azea logo">
-						</a>
+					<div class="app-sidebar__logo" >
+                        <div class="logo">
+                            <div class="dots">
+                                <span class="dot red"></span>
+                                <span class="dot gray"></span>
+                                <span class="dot yellow"></span>
+                            </div>
+                            <div class="mov">MÓVEIS</div>
+                            <div class="carvalho">CARVALHO</div>
+                        </div>
 					</div>
 
-					<ul class="side-menu app-sidebar3">
+					<ul class="side-menu app-sidebar3" style="margin-top: 110px !important;">
 						<li class="side-item side-item-category">Acesso Restrito</li>
-						<li class="slide">
+						<li class="slide" >
 							<a class="side-menu__item"  href="<?=url_to('restrito.dashboard.index')?>">
-							<svg xmlns="http://www.w3.org/2000/svg"  class="side-menu__icon" width="24" height="24" viewBox="0 0 24 24"><path d="M3 13h1v7c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-7h1a1 1 0 0 0 .707-1.707l-9-9a.999.999 0 0 0-1.414 0l-9 9A1 1 0 0 0 3 13zm7 7v-5h4v5h-4zm2-15.586 6 6V15l.001 5H16v-5c0-1.103-.897-2-2-2h-4c-1.103 0-2 .897-2 2v5H6v-9.586l6-6z"/></svg>
-							<span class="side-menu__label">Dashboard</span></a>
+                            <i class="fa fa-tachometer" ></i>
+							<span class="side-menu__label px-4 py-2">Dashboard</span></a>
 						</li>
 
                         <li class="slide">
 							<a class="side-menu__item"  href="<?=url_to('restrito.produto.index')?>">
-							<svg xmlns="http://www.w3.org/2000/svg"  class="side-menu__icon" width="24" height="24" viewBox="0 0 24 24"><path d="M3 13h1v7c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-7h1a1 1 0 0 0 .707-1.707l-9-9a.999.999 0 0 0-1.414 0l-9 9A1 1 0 0 0 3 13zm7 7v-5h4v5h-4zm2-15.586 6 6V15l.001 5H16v-5c0-1.103-.897-2-2-2h-4c-1.103 0-2 .897-2 2v5H6v-9.586l6-6z"/></svg>
-							<span class="side-menu__label">Produtos</span></a>
+                            <i class="fa fa-cubes"></i>
+							<span class="side-menu__label px-4 py-2">Produtos</span></a>
 						</li>
 
                         <li class="slide">
 							<a class="side-menu__item"  href="<?=url_to('restrito.entrada.index')?>">
-							<svg xmlns="http://www.w3.org/2000/svg"  class="side-menu__icon" width="24" height="24" viewBox="0 0 24 24"><path d="M3 13h1v7c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-7h1a1 1 0 0 0 .707-1.707l-9-9a.999.999 0 0 0-1.414 0l-9 9A1 1 0 0 0 3 13zm7 7v-5h4v5h-4zm2-15.586 6 6V15l.001 5H16v-5c0-1.103-.897-2-2-2h-4c-1.103 0-2 .897-2 2v5H6v-9.586l6-6z"/></svg>
-							<span class="side-menu__label">Entradas</span></a>
+                            <i class="fa fa-sign-in"></i>
+							<span class="side-menu__label px-4 py-2">Entradas</span></a>
 						</li>
 
                         <li class="slide">
 							<a class="side-menu__item"  href="<?=url_to('restrito.saida.index')?>">
-							<svg xmlns="http://www.w3.org/2000/svg"  class="side-menu__icon" width="24" height="24" viewBox="0 0 24 24"><path d="M3 13h1v7c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-7h1a1 1 0 0 0 .707-1.707l-9-9a.999.999 0 0 0-1.414 0l-9 9A1 1 0 0 0 3 13zm7 7v-5h4v5h-4zm2-15.586 6 6V15l.001 5H16v-5c0-1.103-.897-2-2-2h-4c-1.103 0-2 .897-2 2v5H6v-9.586l6-6z"/></svg>
-							<span class="side-menu__label">Saídas</span></a>
+                            <i class="fa fa-sign-out"></i>
+							<span class="side-menu__label px-4 py-2">Saídas</span></a>
+						</li>
+
+                        <li class="slide">
+							<a class="side-menu__item"  href="<?=url_to('restrito.relatorio.index')?>">
+                            <i class="fa fa-bar-chart"></i>
+							<span class="side-menu__label px-4 py-2">Relatórios</span></a>
 						</li>
 
                         <li class="slide">
 							<a class="side-menu__item"  href="#">
-							<svg xmlns="http://www.w3.org/2000/svg"  class="side-menu__icon" width="24" height="24" viewBox="0 0 24 24"><path d="M3 13h1v7c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-7h1a1 1 0 0 0 .707-1.707l-9-9a.999.999 0 0 0-1.414 0l-9 9A1 1 0 0 0 3 13zm7 7v-5h4v5h-4zm2-15.586 6 6V15l.001 5H16v-5c0-1.103-.897-2-2-2h-4c-1.103 0-2 .897-2 2v5H6v-9.586l6-6z"/></svg>
-							<span class="side-menu__label">Relatórios</span></a>
+                            <i class="fa fa-cogs"></i>
+							<span class="side-menu__label px-4 py-2">Configurações</span></a>
 						</li>
 					</ul>
 				</aside>
@@ -107,6 +163,8 @@
                                         <img src="/assets/images/brand/favicon.png" class="header-brand-img mobile-logo" alt="Azea logo">
                                         <img src="/assets/images/brand/favicon1.png" class="header-brand-img darkmobile-logo" alt="Azea logo">
                                     </a>
+
+                                    
                                     <div class="app-sidebar__toggle d-flex" data-bs-toggle="sidebar">
                                         <a class="open-toggle" href="javascript:void(0);">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="feather feather-align-left header-icon" width="24" height="24" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
@@ -218,6 +276,9 @@
         <!-- datatables -->
         <script src="/assets/plugins/datatables/datatables.min.js" type="text/javascript"></script>
         <link href="/assets/plugins/datatables/datatables.min.css" rel="stylesheet" type="text/css" />
+
+        <!-- select2 -->
+        <script src="/assets/plugins/select2/select2.full.min.js"></script>
 
         <script>
             $.extend(true, $.fn.dataTable.defaults, {
