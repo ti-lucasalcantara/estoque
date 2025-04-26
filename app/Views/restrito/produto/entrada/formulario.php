@@ -23,7 +23,7 @@
                 <!-- Destaque do Produto -->
                 <div class="mb-5 pb-3 border-bottom">
                     <h3 class="text-dark mb-1"><strong><?= esc($produto['nome']) ?></strong></h3>
-                    <h6 class="text-muted">Código: <?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
+                    <h6 class="text-muted"><?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
                 </div>
 
                 <form method="POST" action="<?= url_to('restrito.entrada.salvar') ?>">
@@ -49,13 +49,19 @@
                             <small class="text-danger"><?= validation_show_error('quantidade') ?></small>
                         </div>
 
-                        <div class="col-md-6">
-                            <label for="localizacao" class="form-label">*Localização</label>
-                            <select class="form-select <?= empty(validation_show_error('id_categoria')) ? '' : 'is-invalid' ?>" id="id_categoria" name="id_categoria">
+                        <div class="col-md-8">
+                            <label for="id_local" class="form-label">*Localização</label>
+                            <select class="form-select <?= empty(validation_show_error('id_local')) ? '' : 'is-invalid' ?>" id="id_local" name="id_local">
                                 <option value="">Selecione</option>
-                                <option value="Loja" <?= set_select('localizacao', 'Loja') ?>>Loja</option>
-                                <option value="Depósito 1" <?= set_select('localizacao', 'Depósito 1') ?>>Depósito 1</option>
-                                <option value="Depósito 2" <?= set_select('localizacao', 'Depósito 2') ?>>Depósito 2</option>
+                                <?php
+                                if(isset($ref_local) && !empty($ref_local)){
+                                    foreach ($ref_local as $local) {
+                                ?>
+                                <option value="<?=$local['id_local']?>" <?= set_select('id_local', $local['id_local'], (isset($produto_entrada['id_local']) && $produto_entrada['id_local'] == $local['id_local'] ? true : false)) ?>><?=$local['local']?></option>
+                                <?php
+                                    }
+                                }
+                                ?>
                             </select>
                             <small class="text-danger"><?= validation_show_error('localizacao') ?></small>
                         </div>
@@ -81,4 +87,60 @@
 </div>
 <!-- End Row -->
 
+<?php
+if(isset($entradas) && !empty($entradas)){
+?>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive mb-5">
+                    <h3 class="text-dark mb-1"><strong><?= esc($produto['nome']) ?></strong></h3>
+                    <h6 class="text-muted"><?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
+               
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Local/Responsável</th>
+                                <th>Quantidade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $x = sizeof($entradas);
+                            $qtd_total = 0;
+                            foreach ($entradas as $entrada) {
+                                $qtd_total += $entrada['quantidade'];
+                            ?>
+                            <tr>
+                                <td><?=$x?></td>
+                                <td><?=dataPTBR($entrada['data_entrada'])?></td>
+                                <td><span class="badge bg-success">Entrada manual</span></td>
+                                <td><?=$entrada['local']?><br><small><?=$entrada['usuarioCriacao']?></small></td>
+                                <td><?=$entrada['quantidade']?></td>
+                            </tr>
+                            <?php
+                            $x--;
+                            }
+                            ?>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-info">
+                                <td colspan="4" class="text-end"><strong>>> Total</strong></td>
+                                <td><strong><?=$qtd_total?></strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<?php
+}
+?>
 <?= $this->endSection() ?>

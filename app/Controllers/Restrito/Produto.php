@@ -3,6 +3,7 @@
 namespace App\Controllers\Restrito;
 use App\Models\TbProduto;
 use App\Models\RefCategoria;
+use App\Models\TbProdutoImagem;
 
 class Produto extends \App\Controllers\BaseController
 {
@@ -15,8 +16,9 @@ class Produto extends \App\Controllers\BaseController
     public function index()
     {
         $this->dados['tb_produto'] = (new TbProduto())
-                                    ->select('tb_produto.*, ref_categoria.categoria, fn_saldo_estoque(tb_produto.id_produto) AS "saldoEstoque" ')
+                                    ->select('tb_produto.*, ref_categoria.categoria, fn_saldo_estoque(tb_produto.id_produto) AS "saldoEstoque", (SELECT pi.imagem FROM tb_produto_imagem pi WHERE pi.id_produto=tb_produto.id_produto AND pi.principal=1 ) AS "imagemPrincipal" ')
                                     ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
+                                    ->orderBy('tb_produto.nome', 'ASC')
                                     ->findAll();
         return view('restrito/produto/index', $this->dados);
     }
@@ -25,7 +27,7 @@ class Produto extends \App\Controllers\BaseController
     {
         if($id_produto){
             $id_produto = base64_decode($id_produto);
-            $this->dados['produto'] = (new TbProduto())->find($id_produto);
+            $this->dados['produto'] = (new TbProduto())->select('tb_produto.*, (SELECT pi.imagem FROM tb_produto_imagem pi WHERE pi.id_produto=tb_produto.id_produto AND pi.principal=1 ) AS "imagemPrincipal"')->find($id_produto);
         }
 
         $this->dados['ref_categoria'] = (new RefCategoria())->orderBy('categoria', 'asc')->findAll();
@@ -108,6 +110,16 @@ class Produto extends \App\Controllers\BaseController
             if(!$save){
                 session()->setFlashdata(getMessageFail('sweetalert'));
                 return redirect()->back()->withInput();
+            }
+
+            if(!$id_produto){
+                $id_produto = $TbProduto->getInsertID();
+            }
+
+            $url_imagem = uploadImagem( $this->request->getFile('imagem'), "uploads/produto/$id_produto/" );
+
+            if($url_imagem && !empty($url_imagem)){
+                (new TbProdutoImagem())->salvarImagemPrincipal($id_produto, $url_imagem);
             }
 
             session()->setFlashdata(getMessageSucess());

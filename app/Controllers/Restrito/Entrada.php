@@ -4,6 +4,7 @@ namespace App\Controllers\Restrito;
 use App\Controllers\BaseController;
 use App\Models\TbProduto;
 use App\Models\TbProdutoEntrada;
+use App\Models\RefLocal;
 class Entrada extends BaseController
 {
     private $dados;
@@ -41,6 +42,15 @@ class Entrada extends BaseController
             $this->dados['produto_entrada'] = (new TbProdutoEntrada())->find($id_produto_entrada);
         }
 
+        $this->dados['ref_local'] = (new RefLocal())->orderBy('local', 'ASC')->findAll();
+        $this->dados['entradas']  = (new TbProdutoEntrada())
+                                    ->select('tb_produto_entrada.*, ref_local.local as "local", tb_usuario.nome AS "usuarioCriacao" ')
+                                    ->join('tb_usuario', 'tb_usuario.id_usuario=tb_produto_entrada.user_created')
+                                    ->join('ref_local', 'ref_local.id_local=tb_produto_entrada.id_local')
+                                    ->where('id_produto', $id_produto)
+                                    ->orderBy('data_entrada','DESC')
+                                    ->findAll();
+
         return view('restrito/produto/entrada/formulario', $this->dados);
     }
 
@@ -59,9 +69,10 @@ class Entrada extends BaseController
             }
 
             $rules = [
-                'data_entrada' => 'required|valid_date',
-                'quantidade' => 'required|is_natural_no_zero',
+                'data_entrada'  => 'required|valid_date',
+                'quantidade'    => 'required|is_natural_no_zero',
                 'observacoes'   => 'permit_empty|max_length[500]',
+                'id_local'      => 'required',
             ];
 
             $messages   = [
@@ -75,6 +86,9 @@ class Entrada extends BaseController
                 ],
                'observacoes' => [
                     'max_length' => 'A quantidade de caracteres informada está maior que o permitido, máximo 500 caracteres.',
+                ],
+                'id_local' => [
+                    'required' => 'Campo obrigatório.',
                 ],
             ];
 
@@ -91,12 +105,14 @@ class Entrada extends BaseController
             $quantidade   = $this->request->getPost('quantidade');
             $data_entrada = $this->request->getPost('data_entrada');
             $observacoes  = $this->request->getPost('observacoes');
+            $id_local     = $this->request->getPost('id_local');
 
             $entrada = [
                 'id_produto'   => $id_produto,
                 'data_entrada' => $data_entrada,
                 'quantidade'   => $quantidade,
                 'observacoes'  => $observacoes,
+                'id_local'     => $id_local,
             ];
 
             if($edit){

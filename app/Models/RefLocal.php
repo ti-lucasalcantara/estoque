@@ -4,10 +4,10 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class TbProdutoImagem extends Model
+class RefLocal extends Model
 {
-    protected $table            = 'tb_produto_imagem';
-    protected $primaryKey       = 'id_produto_imagem';
+    protected $table            = 'ref_local';
+    protected $primaryKey       = 'id_local';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = true;
@@ -59,18 +59,4 @@ class TbProdutoImagem extends Model
         return $data;
     }
       
-    public function salvarImagemPrincipal($idProduto, $urlImagem)
-    {
-        $this->where('id_produto', $idProduto)
-            ->set(['principal' => 0])
-            ->update();
-
-        return $this->save([
-            'id_produto' => $idProduto,
-            'imagem'     => $urlImagem,
-            'principal'  => 1,
-        ]);
-    }
-
-
 }
