@@ -1,0 +1,53 @@
+<?= $this->extend('restrito/template/principal') ?>
+
+<?= $this->section('conteudo') ?>
+<!-- Page header -->
+<div class="page-header">
+    <div class="page-leftheader">
+        <h4 class="page-title mb-0 text-primary"><i class="fa fa-cogs"></i> Configurações do Sistema</h4>
+    </div>
+</div>
+<!-- End Page header -->
+
+<!-- Row -->
+<div class="row">
+    <?php
+    
+    ?>
+
+    <?php 
+    if(isset($configs) && !empty($configs)):
+        foreach ($configs as $config):
+            $url = '#';
+            if( route_to($config['rota'], $config['titulo'], $config['parametro']) ){
+                $url = url_to($config['rota'], base64_encode($config['titulo']),base64_encode($config['parametro']));
+            }
+    ?>
+            <div class="col-md-6">
+                <a href='<?=$url?>' class="card card-hover" style="cursor: pointer;">
+                    <div class="card-body text-center">
+                        <h5 class="card-title"><?= esc($config['titulo']) ?></h5>
+                        <p class="text-muted">Clique para visualizar</p>
+                    </div>
+                </a>
+            </div>
+    <?php 
+        endforeach;
+    endif;
+    ?>
+</div>
+<!-- End Row -->
+<?= $this->endSection() ?>
+
+<?= $this->section('css') ?>
+<style>
+    .card-hover:hover {
+        background-color: #f0f0f0;
+        transition: 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+<?= $this->endSection() ?>
+
+<?= $this->section('js') ?>
+<?= $this->endSection() ?>

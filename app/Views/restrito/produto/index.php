@@ -6,7 +6,7 @@
 <!--Page header-->
 <div class="page-header">
     <div class="page-leftheader">
-        <h4 class="page-title mb-0 text-primary">Produtos</h4>
+        <h4 class="page-title mb-0 text-primary"><i class="fa fa-cubes"></i> Produtos</h4>
     </div>
     <div class="page-rightheader">
         <div class="btn-list">
@@ -18,10 +18,14 @@
     </div>
 </div>
 
-<div class="text-end mb-3">
-    <button id="view-cards" class="btn btn-primary btn-sm">Ver em Cards</button>
-    <button id="view-table" class="btn btn-outline-primary btn-sm">Ver em Tabela</button>
+<div class="d-flex justify-content-between mb-3">
+    <input type="text" id="filtro-produto" class="form-control form-control w-80" placeholder="Buscar o produto pelo NOME, CÓDIGO ou COR">
+    <div>
+        <button id="view-cards" class="btn btn-primary btn-sm">Ver em Cards</button>
+        <button id="view-table" class="btn btn-outline-primary btn-sm">Ver em Tabela</button>
+    </div>
 </div>
+
 <!--End Page header-->
 <?php
 if(isset($tb_produto) && !empty($tb_produto)){
@@ -47,20 +51,35 @@ if(isset($tb_produto) && !empty($tb_produto)){
                                 <i class="fa fa-cogs"></i>
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="<?=url_to('restrito.produto.editar', base64_encode($produto['id_produto']))?>">Editar</a></li>
-                                <li><a class="dropdown-item modalExcluir" href="javascript:void(0);" data-id-excluir="<?=$produto['id_produto']?>" data-url-excluir="<?=url_to('restrito.produto.excluir')?>" data-mensagem-excluir="Confirma excluir o produto [<?=$produto['nome']?>] ?">Excluir</a></li>
-                                <li><a class="dropdown-item" href="<?=url_to('restrito.entrada.formulario', base64_encode($produto['id_produto']))?>">Entrada</a></li>
-                                <li><a class="dropdown-item" href="<?=url_to('restrito.saida.formulario', base64_encode($produto['id_produto']))?>">Saída</a></li>
+                                <li><a class="dropdown-item" href="<?=url_to('restrito.entrada.formulario', base64_encode($produto['id_produto']))?>"><i class="fa fa-sign-in"></i> Entrada</a></li>
+                                <li><a class="dropdown-item" href="<?=url_to('restrito.saida.formulario', base64_encode($produto['id_produto']))?>"><i class="fa fa-sign-out"></i> Saída</a></li>
+                                <li><a class="dropdown-item" href="<?=url_to('restrito.produto.editar', base64_encode($produto['id_produto']))?>"><i class="fa fa-pencil"></i> Editar</a></li>
+                                <li><a class="dropdown-item modalExcluir" href="javascript:void(0);" data-id-excluir="<?=$produto['id_produto']?>" data-url-excluir="<?=url_to('restrito.produto.excluir')?>" data-mensagem-excluir="Confirma excluir o produto [<?=$produto['nome']?>] ?"><i class="fa fa-trash"></i> Excluir</a></li>
                             </ul>
                         </div>
                     </div>
 
-                    <div class="card-body text-center">
-                        <h6 class="estoque-label <?=$produto['saldoEstoque'] <= $produto['estoque_minimo'] ? 'text-danger' : ''?>">Em Estoque</h6>
-                        <p class="estoque-quantidade <?=$produto['saldoEstoque'] <= $produto['estoque_minimo'] ? 'text-danger' : ''?>"><?=$produto['saldoEstoque'];?></p>
+                    <div class="card-body text-center d-flex w-100" style="justify-content: space-between; align-items: center;">
+                        <div>
+                            <span class="estoque-label <?=$produto['saldoEstoque'] <= $produto['estoque_minimo'] ? 'text-danger' : ''?>">Em Estoque</span>
+                            <br>
+                            <span class="estoque-quantidade <?=$produto['saldoEstoque'] <= $produto['estoque_minimo'] ? 'text-danger' : ''?>"><?=$produto['saldoEstoque'];?></span>
+                        </div>
+                        <?php
+                        if(!empty(getHexaCorProduto($produto))){
+                        ?>
+                        <div class="text-center">
+                            <span><?=getNomeCorProduto($produto)?></span>
+                            <br>
+                            <span style="display: inline-block; width: 20px; height: 20px; background-color:<?=getHexaCorProduto($produto)?>; border: 1px solid #000; border-radius: 3px; margin-left: 5px;"></span>
+                        </div>
+                        <?php
+                        }
+                        ?>
                     </div>
+
                 </div>
-            </div>
+            </div>  
         <?php
         }
         ?>
@@ -233,6 +252,32 @@ document.addEventListener('DOMContentLoaded', function () {
     // Eventos dos botões
     btnCards.addEventListener('click', () => switchView('cards'));
     btnTable.addEventListener('click', () => switchView('table'));
+
+
+
+    // Filtro de produtos
+    const filtroInput = document.getElementById('filtro-produto');
+    const cards = document.querySelectorAll('#cards-view .col-md-3');
+
+    filtroInput.addEventListener('input', function() {
+        const filtro = this.value.toLowerCase();
+
+        cards.forEach(function(card) {
+            const nome = card.querySelector('.overlay-title').textContent.toLowerCase();
+            const codigo = card.querySelector('.overlay-text').textContent.toLowerCase();
+
+            // Se tiver cor no card, pega o texto dela (cuidado com cards sem cor!)
+            const corElement = card.querySelector('.card-body .text-center span:first-child');
+            const cor = corElement ? corElement.textContent.toLowerCase() : '';
+
+            if (nome.includes(filtro) || codigo.includes(filtro) || cor.includes(filtro)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+
 });
 
 $('#tabela_produtos').DataTable({

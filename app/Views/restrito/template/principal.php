@@ -142,7 +142,7 @@
 						</li>
 
                         <li class="slide">
-							<a class="side-menu__item"  href="#">
+							<a class="side-menu__item"  href="<?=url_to('restrito.config.index')?>">
                             <i class="fa fa-cogs"></i>
 							<span class="side-menu__label px-4 py-2">Configurações</span></a>
 						</li>
@@ -157,12 +157,15 @@
                         <div class="app-header header main-header1">
                             <div class="container-fluid">
                                 <div class="d-flex">
-                                    <a class="header-brand" href="index.html">
-                                        <img src="/assets/images/brand/logo.png" class="header-brand-img desktop-lgo" alt="Azea logo">
-                                        <img src="/assets/images/brand/logo1.png" class="header-brand-img dark-logo" alt="Azea logo">
-                                        <img src="/assets/images/brand/favicon.png" class="header-brand-img mobile-logo" alt="Azea logo">
-                                        <img src="/assets/images/brand/favicon1.png" class="header-brand-img darkmobile-logo" alt="Azea logo">
-                                    </a>
+                                    <div class="logo mt-2" style=" width: 100%; text-align: center;">
+                                        <div class="dots" style="display: flex; text-align: center; justify-content: center;">
+                                            <span class="dot red"></span>
+                                            <span class="dot gray"></span>
+                                            <span class="dot yellow"></span>
+                                        </div>
+                                        <div class="mov">MÓVEIS</div>
+                                        <div class="carvalho">CARVALHO</div>
+                                    </div>
 
                                     
                                     <div class="app-sidebar__toggle d-flex" data-bs-toggle="sidebar">

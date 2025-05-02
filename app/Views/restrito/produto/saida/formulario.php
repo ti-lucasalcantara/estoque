@@ -5,7 +5,7 @@
 <!-- Page header -->
 <div class="page-header">
     <div class="page-leftheader">
-        <h4 class="page-title mb-0 text-primary">Saída de Produto</h4>
+        <h4 class="page-title mb-0 text-primary">Saida de Produto</h4>
     </div>
     <div class="page-rightheader">
         <a href="<?= url_to('restrito.produto.index') ?>" class="btn btn-outline-primary">
@@ -23,7 +23,7 @@
                 <!-- Destaque do Produto -->
                 <div class="mb-5 pb-3 border-bottom">
                     <h3 class="text-dark mb-1"><strong><?= esc($produto['nome']) ?></strong></h3>
-                    <h6 class="text-muted">Código: <?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
+                    <h6 class="text-muted"><?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
                 </div>
 
                 <form method="POST" action="<?= url_to('restrito.saida.salvar') ?>">
@@ -49,15 +49,42 @@
                             <small class="text-danger"><?= validation_show_error('quantidade') ?></small>
                         </div>
 
-                        <div class="col-md-6">
-                            <label for="localizacao" class="form-label">*Localização</label>
-                            <select class="form-select <?= empty(validation_show_error('id_categoria')) ? '' : 'is-invalid' ?>" id="id_categoria" name="id_categoria">
+                        <div class="col-md-4">
+                            <label for="id_local" class="form-label">*Localização</label>
+                            <select class="form-select <?= empty(validation_show_error('id_local')) ? '' : 'is-invalid' ?>" id="id_local" name="id_local">
                                 <option value="">Selecione</option>
-                                <option value="Loja" <?= set_select('localizacao', 'Loja') ?>>Loja</option>
-                                <option value="Depósito 1" <?= set_select('localizacao', 'Depósito 1') ?>>Depósito 1</option>
-                                <option value="Depósito 2" <?= set_select('localizacao', 'Depósito 2') ?>>Depósito 2</option>
+                                <?php
+                                if(isset($ref_local) && !empty($ref_local)){
+                                    foreach ($ref_local as $local) {
+                                ?>
+                                <option value="<?=$local['id_local']?>" <?= set_select('id_local', $local['id_local'], (isset($produto_saida['id_local']) && $produto_saida['id_local'] == $local['id_local'] ? true : false)) ?>><?=$local['local']?></option>
+                                <?php
+                                    }
+                                }
+                                ?>
                             </select>
                             <small class="text-danger"><?= validation_show_error('localizacao') ?></small>
+                        </div>
+
+                        
+                        <div class="col-md-4">
+                            <label for="id_motivo_saida" class="form-label">*Forma de saida</label>
+                            <div class="input-group">
+                                <select class="form-select <?= empty(validation_show_error('id_motivo_saida')) ? '' : 'is-invalid' ?>" id="id_motivo_saida" name="id_motivo_saida">
+                                    <option value="">Selecione</option>
+                                    <?php
+                                    if(isset($ref_motivo_saida) && !empty($ref_motivo_saida)){
+                                        foreach ($ref_motivo_saida as $motivo_saida) {
+                                    ?>
+                                    <option value="<?=$motivo_saida['id_motivo_saida']?>" <?= set_select('id_motivo_saida', $motivo_saida['id_motivo_saida'], (isset($produto_saida['id_motivo_saida']) && $produto_saida['id_motivo_saida'] == $motivo_saida['id_motivo_saida'] ? true : false)) ?>><?=$motivo_saida['motivo_saida']?></option>
+                                    <?php
+                                        }
+                                    }
+                                    ?>
+                                    <!-- Outras opções -->
+                                </select>
+                            </div>
+                            <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('id_motivo_saida') ?></small>
                         </div>
                     </div>
 
@@ -81,4 +108,66 @@
 </div>
 <!-- End Row -->
 
+<?php
+if(isset($saidas) && !empty($saidas)){
+?>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive mb-5">
+                    <h3 class="text-dark mb-1"><strong><?= esc($produto['nome']) ?></strong></h3>
+                    <h6 class="text-muted"><?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
+               
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Local/Responsável</th>
+                                <th>Quantidade</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $x = sizeof($saidas);
+                            $qtd_total = 0;
+                            foreach ($saidas as $saida) {
+                                $qtd_total += $saida['quantidade'];
+                            ?>
+                            <tr>
+                                <td><?=$x?></td>
+                                <td><?=dataPTBR($saida['data_saida'])?></td>
+                                <td><span class="badge bg-success"><?=$saida['motivo_saida']?></span></td>
+                                <td><?=$saida['local']?><br><small><?=$saida['usuarioCriacao']?></small></td>
+                                <td><?=$saida['quantidade']?></td>
+                                <td><a href="<?=url_to('restrito.saida.editar', base64_encode($saida['id_produto']), base64_encode($saida['id_produto_saida']) )?>">editar</a></td>
+                                <td><a href="javascript:void(0);" data-id-excluir="<?=$saida['id_produto_saida']?>" data-url-excluir="<?=url_to('restrito.saida.excluir')?>" data-mensagem-excluir="Confirma excluir saida [<?=$saida['quantidade'];?>] do produto [<?=$produto['nome']?>] ?" class="modalExcluir">excluir</a></td>
+                            </tr>
+                            <?php
+                            $x--;
+                            }
+                            ?>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-info">
+                                <td colspan="4" class="text-end"><strong>>> Total</strong></td>
+                                <td><strong><?=$qtd_total?></strong></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<?php
+}
+?>
 <?= $this->endSection() ?>

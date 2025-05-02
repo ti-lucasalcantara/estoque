@@ -72,7 +72,7 @@
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
-                <h5 class="mt-4">Álcool em Gel 70%</h5>
+                <h5 class="mt-4">CAM-001 | Cama Box Casal</h5>
                 <div class="table-responsive mb-5">
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">

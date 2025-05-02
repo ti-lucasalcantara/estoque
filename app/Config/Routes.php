@@ -29,6 +29,7 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
         $routes->group('in', function ($routes) {
             // Em lote
             $routes->get('/', 'Entrada::index', ['as' => 'restrito.entrada.index']);
+            
             $routes->get('form', 'Entrada::formularioMultiplas', ['as' => 'restrito.entrada.formularioMultiplas']);
             $routes->post('salvar-multiplas', 'Entrada::salvarMultiplas', ['as' => 'restrito.entrada.salvarMultiplas']);
 
@@ -69,5 +70,18 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
         $routes->get('movimento', 'Relatorio::movimentacaoProduto', ['as' => 'restrito.relatorio.movimentacaoProduto']);
         
     });
+
+
+    // Configurações    
+    $routes->group('config', static function ($routes) {
+        $routes->get('/', 'Config::index', ['as' => 'restrito.config.index']);
+        $routes->get('crud/(:any)/(:any)', 'Config::crud/$1/$2', ['as' => 'restrito.config.crud']);
+        $routes->get('crud/(:any)/(:any)/(:any)', 'Config::crud/$1/$2/$3', ['as' => 'restrito.config.edit']);
+        
+        $routes->post('salvar', 'Config::salvar', ['as' => 'restrito.config.salvar']);
+        $routes->post('excluir', 'Config::excluir', ['as' => 'restrito.config.excluir']);
+
+    });
+
 
 });

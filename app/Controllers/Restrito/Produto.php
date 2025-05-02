@@ -4,6 +4,7 @@ namespace App\Controllers\Restrito;
 use App\Models\TbProduto;
 use App\Models\RefCategoria;
 use App\Models\TbProdutoImagem;
+use App\Models\RefCaracteristica;
 
 class Produto extends \App\Controllers\BaseController
 {
@@ -30,8 +31,10 @@ class Produto extends \App\Controllers\BaseController
             $this->dados['produto'] = (new TbProduto())->select('tb_produto.*, (SELECT pi.imagem FROM tb_produto_imagem pi WHERE pi.id_produto=tb_produto.id_produto AND pi.principal=1 ) AS "imagemPrincipal"')->find($id_produto);
         }
 
-        $this->dados['ref_categoria'] = (new RefCategoria())->orderBy('categoria', 'asc')->findAll();
+        $this->dados['ref_categoria'] = (new RefCategoria())->orderBy('categoria', 'ASC')->findAll();
         
+        $this->dados['ref_caracteristica'] = (new RefCaracteristica())->whereIn('caracteristica', ['cor'])->orderBy('caracteristica', 'ASC')->findAll();
+
         return view('restrito/produto/formulario', $this->dados);
     }
 
@@ -85,12 +88,12 @@ class Produto extends \App\Controllers\BaseController
                 return redirect()->back()->withInput();   
             }
 
-            $nome           = $this->request->getPost('nome');
-            $codigo         = $this->request->getPost('codigo');
-            $id_categoria   = $this->request->getPost('id_categoria');
-            $descricao      = $this->request->getPost('descricao');
-            $estoque_minimo = $this->request->getPost('estoque_minimo');
-
+            $nome               = $this->request->getPost('nome');
+            $codigo             = $this->request->getPost('codigo');
+            $id_categoria       = $this->request->getPost('id_categoria');
+            $descricao          = $this->request->getPost('descricao');
+            $estoque_minimo     = $this->request->getPost('estoque_minimo');
+            
             $produto = [
                 'nome' => $nome,
                 'codigo' => $codigo,
@@ -103,23 +106,55 @@ class Produto extends \App\Controllers\BaseController
                 $produto['id_produto'] = $id_produto;
             }
 
-            $TbProduto = new TbProduto();
+            if(!empty($this->request->getPost('json')['cor'])){
+                foreach ($this->request->getPost('json')['cor'] as $key => $value) {
+                    
+                    $json['cor'] = [];
+                        
+                    $partes = explode("||",$value);
+                    $nome_cor = $partes[0] ?? 0;
+                    $hexa_cor = end($partes) ?? 0;
 
-            $save = $TbProduto->save($produto);
+                    $json['cor'] = [
+                        $hexa_cor => $nome_cor,
+                    ];
+
+                    $produto['json'] = json_encode($json);
+
+                    $TbProduto = new TbProduto();
+                    $save = $TbProduto->save($produto);
+
+                    if(!$id_produto){
+                        $id_produto = $TbProduto->getInsertID();
+                    }
+        
+                    $url_imagem = uploadImagem( $this->request->getFile('imagem'), "uploads/produto/$id_produto/" );
+        
+                    if($url_imagem && !empty($url_imagem)){
+                        (new TbProdutoImagem())->salvarImagemPrincipal($id_produto, $url_imagem);
+                    }
+
+                }
+
+            }else{
+               
+                $TbProduto = new TbProduto();
+                $save = $TbProduto->save($produto);
+
+                if(!$id_produto){
+                    $id_produto = $TbProduto->getInsertID();
+                }
+    
+                $url_imagem = uploadImagem( $this->request->getFile('imagem'), "uploads/produto/$id_produto/" );
+    
+                if($url_imagem && !empty($url_imagem)){
+                    (new TbProdutoImagem())->salvarImagemPrincipal($id_produto, $url_imagem);
+                }
+            }
 
             if(!$save){
                 session()->setFlashdata(getMessageFail('sweetalert'));
                 return redirect()->back()->withInput();
-            }
-
-            if(!$id_produto){
-                $id_produto = $TbProduto->getInsertID();
-            }
-
-            $url_imagem = uploadImagem( $this->request->getFile('imagem'), "uploads/produto/$id_produto/" );
-
-            if($url_imagem && !empty($url_imagem)){
-                (new TbProdutoImagem())->salvarImagemPrincipal($id_produto, $url_imagem);
             }
 
             session()->setFlashdata(getMessageSucess());

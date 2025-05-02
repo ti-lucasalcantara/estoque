@@ -4,7 +4,10 @@ namespace App\Controllers\Restrito;
 use App\Controllers\BaseController;
 use App\Models\TbProduto;
 use App\Models\TbProdutoSaida;
-class Saida extends BaseController
+use App\Models\RefLocal;
+use App\Models\RefMotivoSaida;
+
+class saida extends BaseController
 {
     private $dados;
 
@@ -41,6 +44,18 @@ class Saida extends BaseController
             $this->dados['produto_saida'] = (new TbProdutoSaida())->find($id_produto_saida);
         }
 
+        $this->dados['ref_local']         = (new RefLocal())->orderBy('local', 'ASC')->findAll();
+        
+        $this->dados['ref_motivo_saida']  = (new RefMotivoSaida())->orderBy('motivo_saida', 'ASC')->findAll();
+        $this->dados['saidas']   = (new TbProdutoSaida())
+                                    ->select('tb_produto_saida.*, ref_local.local as "local", tb_usuario.nome AS "usuarioCriacao", ref_motivo_saida.motivo_saida ')
+                                    ->join('tb_usuario', 'tb_usuario.id_usuario=tb_produto_saida.user_created')
+                                    ->join('ref_motivo_saida', 'ref_motivo_saida.id_motivo_saida=tb_produto_saida.id_motivo_saida', 'left')
+                                    ->join('ref_local', 'ref_local.id_local=tb_produto_saida.id_local')
+                                    ->where('id_produto', $id_produto)
+                                    ->orderBy('data_saida','DESC')
+                                    ->findAll();
+
         return view('restrito/produto/saida/formulario', $this->dados);
     }
 
@@ -59,9 +74,11 @@ class Saida extends BaseController
             }
 
             $rules = [
-                'data_saida' => 'required|valid_date',
-                'quantidade' => 'required|is_natural_no_zero',
+                'data_saida'  => 'required|valid_date',
+                'quantidade'    => 'required|is_natural_no_zero',
                 'observacoes'   => 'permit_empty|max_length[500]',
+                'id_local'      => 'required',
+                'id_motivo_saida'  => 'required',
             ];
 
             $messages   = [
@@ -75,6 +92,12 @@ class Saida extends BaseController
                 ],
                'observacoes' => [
                     'max_length' => 'A quantidade de caracteres informada está maior que o permitido, máximo 500 caracteres.',
+                ],
+                'id_local' => [
+                    'required' => 'Campo obrigatório.',
+                ],
+                'id_motivo_saida' => [
+                    'required' => 'Campo obrigatório.',
                 ],
             ];
 
@@ -91,12 +114,16 @@ class Saida extends BaseController
             $quantidade   = $this->request->getPost('quantidade');
             $data_saida = $this->request->getPost('data_saida');
             $observacoes  = $this->request->getPost('observacoes');
+            $id_local     = $this->request->getPost('id_local');
+            $id_motivo_saida = $this->request->getPost('id_motivo_saida');
 
             $saida = [
                 'id_produto'   => $id_produto,
                 'data_saida' => $data_saida,
                 'quantidade'   => $quantidade,
                 'observacoes'  => $observacoes,
+                'id_local'     => $id_local,
+                'id_motivo_saida' => $id_motivo_saida,
             ];
 
             if($edit){

@@ -5,6 +5,8 @@ use App\Controllers\BaseController;
 use App\Models\TbProduto;
 use App\Models\TbProdutoEntrada;
 use App\Models\RefLocal;
+use App\Models\RefMotivoEntrada;
+
 class Entrada extends BaseController
 {
     private $dados;
@@ -13,16 +15,24 @@ class Entrada extends BaseController
         $this->dados = array();
     }
     
-    public function index($id_produto=null)
+    public function index()
     {
+
+        $data_inicio = $this->request->getGet('data_inicio') ?? date('Y-m-01');
+        $data_fim = $this->request->getGet('data_fim') ?? date('Y-m-d');
+
         $TbProdutoEntrada = new TbProdutoEntrada();
 
         $this->dados['tb_produto_entrada'] = $TbProdutoEntrada
                                                 ->select('tb_produto_entrada.*, tb_produto.nome AS "produto", ref_categoria.categoria')
                                                 ->join('tb_produto', 'tb_produto.id_produto=tb_produto_entrada.id_produto')
                                                 ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
+                                                ->where('tb_produto_entrada.data_entrada BETWEEN "' . $data_inicio . '" AND "' . $data_fim . '"')
                                                 ->orderBy('data_entrada', 'DESC')
                                                 ->findAll();
+
+        $this->dados['data_inicio'] = $data_inicio;
+        $this->dados['data_fim'] = $data_fim;
 
         return view('restrito/produto/entrada/index', $this->dados);
     }
@@ -42,10 +52,12 @@ class Entrada extends BaseController
             $this->dados['produto_entrada'] = (new TbProdutoEntrada())->find($id_produto_entrada);
         }
 
-        $this->dados['ref_local'] = (new RefLocal())->orderBy('local', 'ASC')->findAll();
+        $this->dados['ref_local']           = (new RefLocal())->orderBy('local', 'ASC')->findAll();
+        $this->dados['ref_motivo_entrada']  = (new RefMotivoEntrada())->orderBy('motivo_entrada', 'ASC')->findAll();
         $this->dados['entradas']  = (new TbProdutoEntrada())
-                                    ->select('tb_produto_entrada.*, ref_local.local as "local", tb_usuario.nome AS "usuarioCriacao" ')
+                                    ->select('tb_produto_entrada.*, ref_local.local as "local", tb_usuario.nome AS "usuarioCriacao", ref_motivo_entrada.motivo_entrada ')
                                     ->join('tb_usuario', 'tb_usuario.id_usuario=tb_produto_entrada.user_created')
+                                    ->join('ref_motivo_entrada', 'ref_motivo_entrada.id_motivo_entrada=tb_produto_entrada.id_motivo_entrada', 'left')
                                     ->join('ref_local', 'ref_local.id_local=tb_produto_entrada.id_local')
                                     ->where('id_produto', $id_produto)
                                     ->orderBy('data_entrada','DESC')
@@ -73,6 +85,7 @@ class Entrada extends BaseController
                 'quantidade'    => 'required|is_natural_no_zero',
                 'observacoes'   => 'permit_empty|max_length[500]',
                 'id_local'      => 'required',
+                'id_motivo_entrada'  => 'required',
             ];
 
             $messages   = [
@@ -88,6 +101,9 @@ class Entrada extends BaseController
                     'max_length' => 'A quantidade de caracteres informada está maior que o permitido, máximo 500 caracteres.',
                 ],
                 'id_local' => [
+                    'required' => 'Campo obrigatório.',
+                ],
+                'id_motivo_entrada' => [
                     'required' => 'Campo obrigatório.',
                 ],
             ];
@@ -106,6 +122,7 @@ class Entrada extends BaseController
             $data_entrada = $this->request->getPost('data_entrada');
             $observacoes  = $this->request->getPost('observacoes');
             $id_local     = $this->request->getPost('id_local');
+            $id_motivo_entrada = $this->request->getPost('id_motivo_entrada');
 
             $entrada = [
                 'id_produto'   => $id_produto,
@@ -113,6 +130,7 @@ class Entrada extends BaseController
                 'quantidade'   => $quantidade,
                 'observacoes'  => $observacoes,
                 'id_local'     => $id_local,
+                'id_motivo_entrada' => $id_motivo_entrada,
             ];
 
             if($edit){

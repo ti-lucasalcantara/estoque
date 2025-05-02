@@ -54,6 +54,7 @@
                             <th>Produto</th>
                             <th>Código</th>
                             <th>Categoria</th>
+                            <th>Estoque Minimo</th>
                             <th>Estoque Atual</th>
                         </tr>
                     </thead>
@@ -64,6 +65,7 @@
                                 <td><?= esc($produto['codigo']) ?></td>
                                 <td><?= esc($produto['nome']) ?></td>
                                 <td><?= esc($produto['categoria']) ?></td>
+                                <td><?= esc($produto['estoque_minimo']) ?></td>
                                 <td><?= esc($produto['saldoEstoque']) ?></td>
                             </tr>
                         <?php endforeach; ?>

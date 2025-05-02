@@ -49,7 +49,7 @@
                             <small class="text-danger"><?= validation_show_error('quantidade') ?></small>
                         </div>
 
-                        <div class="col-md-8">
+                        <div class="col-md-4">
                             <label for="id_local" class="form-label">*Localização</label>
                             <select class="form-select <?= empty(validation_show_error('id_local')) ? '' : 'is-invalid' ?>" id="id_local" name="id_local">
                                 <option value="">Selecione</option>
@@ -64,6 +64,27 @@
                                 ?>
                             </select>
                             <small class="text-danger"><?= validation_show_error('localizacao') ?></small>
+                        </div>
+
+                        
+                        <div class="col-md-4">
+                            <label for="id_motivo_entrada" class="form-label">*Forma de Entrada</label>
+                            <div class="input-group">
+                                <select class="form-select <?= empty(validation_show_error('id_motivo_entrada')) ? '' : 'is-invalid' ?>" id="id_motivo_entrada" name="id_motivo_entrada">
+                                    <option value="">Selecione</option>
+                                    <?php
+                                    if(isset($ref_motivo_entrada) && !empty($ref_motivo_entrada)){
+                                        foreach ($ref_motivo_entrada as $motivo_entrada) {
+                                    ?>
+                                    <option value="<?=$motivo_entrada['id_motivo_entrada']?>" <?= set_select('id_motivo_entrada', $motivo_entrada['id_motivo_entrada'], (isset($produto_entrada['id_motivo_entrada']) && $produto_entrada['id_motivo_entrada'] == $motivo_entrada['id_motivo_entrada'] ? true : false)) ?>><?=$motivo_entrada['motivo_entrada']?></option>
+                                    <?php
+                                        }
+                                    }
+                                    ?>
+                                    <!-- Outras opções -->
+                                </select>
+                            </div>
+                            <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('id_motivo_entrada') ?></small>
                         </div>
                     </div>
 
@@ -106,6 +127,8 @@ if(isset($entradas) && !empty($entradas)){
                                 <th>Tipo</th>
                                 <th>Local/Responsável</th>
                                 <th>Quantidade</th>
+                                <th></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -118,9 +141,11 @@ if(isset($entradas) && !empty($entradas)){
                             <tr>
                                 <td><?=$x?></td>
                                 <td><?=dataPTBR($entrada['data_entrada'])?></td>
-                                <td><span class="badge bg-success">Entrada manual</span></td>
+                                <td><span class="badge bg-success"><?=$entrada['motivo_entrada']?></span></td>
                                 <td><?=$entrada['local']?><br><small><?=$entrada['usuarioCriacao']?></small></td>
                                 <td><?=$entrada['quantidade']?></td>
+                                <td><a href="<?=url_to('restrito.entrada.editar', base64_encode($entrada['id_produto']), base64_encode($entrada['id_produto_entrada']) )?>">editar</a></td>
+                                <td><a href="javascript:void(0);" data-id-excluir="<?=$entrada['id_produto_entrada']?>" data-url-excluir="<?=url_to('restrito.entrada.excluir')?>" data-mensagem-excluir="Confirma excluir entrada [<?=$entrada['quantidade'];?>] do produto [<?=$produto['nome']?>] ?" class="modalExcluir">excluir</a></td>
                             </tr>
                             <?php
                             $x--;
@@ -131,6 +156,8 @@ if(isset($entradas) && !empty($entradas)){
                             <tr class="table-info">
                                 <td colspan="4" class="text-end"><strong>>> Total</strong></td>
                                 <td><strong><?=$qtd_total?></strong></td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>

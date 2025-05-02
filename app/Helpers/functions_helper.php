@@ -105,3 +105,69 @@ if ( ! function_exists('getDataExtenso') ){
         return $dia . ' de ' . $meses[$mes] . ' de ' . $ano;
     }
 }
+
+
+
+if ( ! function_exists('getIdNameTabela') ){
+    function getIdNameTabela( $tabela=null ) {
+        switch ($tabela) {
+            case 'ref_categoria':
+                return 'id_categoria';
+                break;
+            
+            case 'ref_local':
+                return 'id_local';
+                break;
+        
+            case 'ref_motivo_entrada':
+                return 'id_motivo_entrada';
+                break;
+
+            case 'ref_motivo_saida':
+                return 'id_motivo_saida';
+                break;
+                
+            default:
+                return 'id';
+                break;
+        }
+        
+    }
+}
+
+
+
+if (!function_exists('getHexaCorProduto')) {
+    function getHexaCorProduto($produto = null) {
+        if (!$produto || is_null($produto)) {
+            return false;
+        }
+
+        $json = json_decode($produto['json'], true);
+
+        if (!isset($json['cor']) || empty($json['cor'])) {
+            return '';
+        }
+
+        $key = array_key_first($json['cor']);
+        return $key ?? '';
+    }
+}
+
+if (!function_exists('getNomeCorProduto')) {
+    function getNomeCorProduto($produto = null) {
+        if (!$produto || is_null($produto)) {
+            return false;
+        }
+
+        $json = json_decode($produto['json'], true);
+
+        if (!isset($json['cor']) || empty($json['cor'])) {
+            return '';
+        }
+
+        $key = array_key_first($json['cor']);
+        $value = $json['cor'][$key] ?? '';
+        return $value;
+    }
+}

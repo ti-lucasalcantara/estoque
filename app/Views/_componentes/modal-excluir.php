@@ -3,6 +3,7 @@
         e.preventDefault();
        
         var id      = $(this).data('id-excluir');
+        var tabela  = $(this).data('tabela-excluir') ?? '';
         var url     = $(this).data('url-excluir');
         var text    = $(this).data('mensagem-excluir');
 
@@ -19,7 +20,8 @@
                 try {
                     var fd = new FormData();
                     fd.append('id', id);
-
+                    fd.append('tabela', tabela);
+                    
                     const resultAjax = await $.ajax({
                         type: "POST",
                         method: 'POST',

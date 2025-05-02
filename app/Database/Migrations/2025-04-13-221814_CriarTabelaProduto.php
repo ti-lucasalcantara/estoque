@@ -21,7 +21,6 @@ class CriarTabelaProduto extends Migration
             'codigo' => [
                 'type'       => 'VARCHAR',
                 'constraint' => '100',
-                'unique' => true,
             ],
             'nome' => [
                 'type'       => 'VARCHAR',
