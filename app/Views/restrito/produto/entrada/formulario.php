@@ -22,7 +22,15 @@
             <div class="card-body">
                 <!-- Destaque do Produto -->
                 <div class="mb-5 pb-3 border-bottom">
-                    <h3 class="text-dark mb-1"><strong><?= esc($produto['nome']) ?></strong></h3>
+                    <h3 class="text-dark mb-1">
+                        <?php if (!empty($produto['cor_nome']) && !empty($produto['cor_hexa'])): ?>
+                            <span style="display:inline-block; width:15px; height:15px; background-color:<?=$produto['cor_hexa']?>; border:1px solid #000; border-radius:3px; margin-right:5px;"></span>
+                        <?php endif; ?>
+                        <?=$produto['nome'];?>
+                        <?php if (!empty($produto['cor_nome'])): ?>
+                            (<?=$produto['cor_nome']?>)
+                        <?php endif; ?>
+                    </h3>
                     <h6 class="text-muted"><?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
                 </div>
 
@@ -81,7 +89,6 @@
                                         }
                                     }
                                     ?>
-                                    <!-- Outras opções -->
                                 </select>
                             </div>
                             <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('id_motivo_entrada') ?></small>
@@ -108,66 +115,120 @@
 </div>
 <!-- End Row -->
 
-<?php
-if(isset($entradas) && !empty($entradas)){
-?>
+<?php if (isset($entradas) && !empty($entradas)): ?>
 <div class="row">
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
-                <div class="table-responsive mb-5">
-                    <h3 class="text-dark mb-1"><strong><?= esc($produto['nome']) ?></strong></h3>
-                    <h6 class="text-muted"><?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
-               
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Local/Responsável</th>
-                                <th>Quantidade</th>
-                                <th></th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $x = sizeof($entradas);
-                            $qtd_total = 0;
-                            foreach ($entradas as $entrada) {
-                                $qtd_total += $entrada['quantidade'];
-                            ?>
-                            <tr>
-                                <td><?=$x?></td>
-                                <td><?=dataPTBR($entrada['data_entrada'])?></td>
-                                <td><span class="badge bg-success"><?=$entrada['motivo_entrada']?></span></td>
-                                <td><?=$entrada['local']?><br><small><?=$entrada['usuarioCriacao']?></small></td>
-                                <td><?=$entrada['quantidade']?></td>
-                                <td><a href="<?=url_to('restrito.entrada.editar', base64_encode($entrada['id_produto']), base64_encode($entrada['id_produto_entrada']) )?>">editar</a></td>
-                                <td><a href="javascript:void(0);" data-id-excluir="<?=$entrada['id_produto_entrada']?>" data-url-excluir="<?=url_to('restrito.entrada.excluir')?>" data-mensagem-excluir="Confirma excluir entrada [<?=$entrada['quantidade'];?>] do produto [<?=$produto['nome']?>] ?" class="modalExcluir">excluir</a></td>
-                            </tr>
-                            <?php
-                            $x--;
-                            }
-                            ?>
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-info">
-                                <td colspan="4" class="text-end"><strong>>> Total</strong></td>
-                                <td><strong><?=$qtd_total?></strong></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
-                    </table>
+
+                <h3 class="text-dark mb-1">
+                    <?php if (!empty($produto['cor_nome']) && !empty($produto['cor_hexa'])): ?>
+                        <span style="display:inline-block; width:15px; height:15px; background-color:<?=$produto['cor_hexa']?>; border:1px solid #000; border-radius:3px; margin-right:5px;"></span>
+                    <?php endif; ?>
+                    <?=$produto['nome'];?>
+                    <?php if (!empty($produto['cor_nome'])): ?>
+                        (<?=$produto['cor_nome']?>)
+                    <?php endif; ?>
+                </h3>
+                <h6 class="text-muted"><?= esc($produto['codigo']) ?> | <?= esc($produto['categoria']) ?></h6>
+
+                <!--  
+                <div class="mb-3">
+                    <input type="text" id="filtroGeral" class="form-control" placeholder="Buscar por motivo, quantidade, local ou responsável...">
+                </div>
+                -->
+                <div class="list-group">
+                    <?php
+                    $agrupadoPorData = [];
+                    $qtd_total = 0;
+                    foreach ($entradas as $entrada) {
+                        $agrupadoPorData[$entrada['data_entrada']][] = $entrada;
+                        $qtd_total += $entrada['quantidade'];
+                    }
+
+                    foreach ($agrupadoPorData as $data => $listaEntradas):
+                    ?>
+                        <!-- Título da data -->
+                        <div class="list-group-item bg-indigo text-white">
+                            <strong><i class="fe fe-calendar me-1"></i> <?= dataPTBR($data); ?></strong>
+                        </div>
+
+                        <?php
+                        $index = count($listaEntradas);
+                        foreach ($listaEntradas as $entrada):
+                        ?>
+                        <div class="list-group-item list-group-item-action justify-content-between align-items-center entrada-card" style="display: flex;"
+                            data-motivo="<?= strtolower($entrada['motivo_entrada']); ?>"
+                            data-quantidade="<?= strtolower($entrada['quantidade']); ?>"
+                            data-local="<?= strtolower($entrada['local']); ?>"
+                            data-responsavel="<?= strtolower($entrada['usuarioCriacao']); ?>">
+
+                            <div class="w-70">
+                                <h6 class="mb-1 d-flex align-items-center">
+                                    #<?= $index-- ?>
+                                    <span class="badge bg-success ms-2"><?= $entrada['motivo_entrada'] ?></span>
+                                    <small class="text-muted ms-2"><?= $entrada['local'] ?> / <?= $entrada['usuarioCriacao'] ?></small>
+                                </h6>
+                                <span class="text-muted">
+                                    <i class="fe fe-box me-1"></i> <?= $entrada['quantidade'] ?> unid.
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <a href="<?= url_to('restrito.entrada.editar', base64_encode($entrada['id_produto']), base64_encode($entrada['id_produto_entrada'])) ?>"
+                                   class="btn btn-sm btn-outline-primary me-2" title="Editar">
+                                    <i class="fe fe-edit"></i>
+                                </a>
+                                <a href="javascript:void(0);"
+                                   data-id-excluir="<?= $entrada['id_produto_entrada'] ?>"
+                                   data-url-excluir="<?= url_to('restrito.entrada.excluir') ?>"
+                                   data-mensagem-excluir="Confirma excluir entrada [<?= $entrada['quantidade'] ?>] do produto [<?= $produto['nome'] ?>] ?"
+                                   class="btn btn-sm btn-outline-danger modalExcluir" title="Excluir">
+                                    <i class="fe fe-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
+
+                    <!-- Total geral -->
+                    <div class="list-group-item bg-light d-flex justify-content-between">
+                        <div><strong>Total de entradas</strong></div>
+                        <div><strong><?= $qtd_total ?> unid.</strong></div>
+                    </div>
                 </div>
 
             </div>
         </div>
     </div>
 </div>
-<?php
-}
-?>
+<?php endif; ?>
+
+<?= $this->endSection() ?>
+
+
+
+<?= $this->section('js') ?>
+<script>
+$(document).ready(function() {
+    $('#filtroGeral').on('input', function() {
+        var filtro = $(this).val().toLowerCase().trim();
+
+        $('.entrada-card').each(function() {
+            var card = $(this);
+            var motivo = card.data('motivo') ? card.data('motivo').toString().toLowerCase() : '';
+            var quantidade = card.data('quantidade') ? card.data('quantidade').toString() : '';
+            var local = card.data('local') ? card.data('local').toString().toLowerCase() : '';
+            var responsavel = card.data('responsavel') ? card.data('responsavel').toString().toLowerCase() : '';
+
+            var conteudo = motivo + ' ' + quantidade + ' ' + local + ' ' + responsavel;
+
+            if (conteudo.includes(filtro)) {
+                card.css('display', '');
+            } else {
+                card.css('display', 'none');
+            }
+        });
+    });
+});
+</script>
 <?= $this->endSection() ?>

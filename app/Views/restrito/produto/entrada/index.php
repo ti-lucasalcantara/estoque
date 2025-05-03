@@ -36,6 +36,10 @@
     </form>
 </div>
 
+<div class="mb-3">
+    <input type="text" id="filtroGeral" class="form-control" placeholder="Busque por NOME DO PRODUTO, COR, CATEGORIA ou QUANTIDADE">
+</div>
+
 <div class="list-group">
     <?php 
     // Agrupa entradas por data
@@ -45,22 +49,42 @@
             $agrupadoPorData[$entrada['data_entrada']][] = $entrada;
         }
         
-        foreach ($agrupadoPorData as $data => $entradas) { ?>
+        foreach ($agrupadoPorData as $data => $entradas) {
+        ?>
             <!-- Título da data -->
             <div class="list-group-item bg-indigo ">
                 <strong><i class="fe fe-calendar me-1"></i> <?=dataPTBR($data);?></strong>
             </div>
             
-            <?php foreach ($entradas as $entrada) { ?>
-                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="mb-1">
+            <?php 
+            foreach ($entradas as $entrada) {
+                $entrada['cor_nome'] = getNomeCorProduto($entrada['TbProduto']);
+                $entrada['cor_hexa'] = getHexaCorProduto($entrada['TbProduto']);
+            ?>
+                <div class="list-group-item list-group-item-action justify-content-between align-items-center entrada-card" style="display: flex;"
+                    data-produto="<?= strtolower($entrada['produto']); ?>"
+                    data-cor="<?= strtolower($entrada['cor_nome']); ?>"
+                    data-categoria="<?= strtolower($entrada['categoria']); ?>"
+                    data-quantidade="<?= strtolower($entrada['quantidade']); ?>"
+                    data-motivo="<?= strtolower($entrada['motivo_entrada']); ?>">
+
+                    <div class="w-70">
+                        <h6 class="mb-1 d-flex align-items-center">
+                            <?php if (!empty($entrada['cor_nome']) && !empty($entrada['cor_hexa'])): ?>
+                                <span style="display:inline-block; width:15px; height:15px; background-color:<?=$entrada['cor_hexa']?>; border:1px solid #000; border-radius:3px; margin-right:5px;"></span>
+                            <?php endif; ?>
                             <?=$entrada['produto'];?>
-                            <small class="text-muted">(<?=$entrada['categoria'];?>)</small>
+                            <?php if (!empty($entrada['cor_nome'])): ?>
+                                (<?=$entrada['cor_nome']?>)
+                            <?php endif; ?>
+                            <small class="text-muted ms-2"><?=$entrada['categoria'];?></small>
                         </h6>
                         <span class="text-muted">
                             <i class="fe fe-box me-1"></i> <?=$entrada['quantidade'];?> unid.
                         </span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <?=$entrada['motivo_entrada'] ?? ''?>
                     </div>
                     <div class="d-flex align-items-center">
                         <a href="<?=url_to('restrito.entrada.editar', base64_encode($entrada['id_produto']), base64_encode($entrada['id_produto_entrada']))?>" 
@@ -80,15 +104,12 @@
     <?php } 
     }else{
     ?>
-
     - Nenhuma entrada registrada no período selecionado -
     <?php
     } 
     ?>
 
 </div>
-
-
 
 <?= $this->endSection() ?>
 
@@ -109,26 +130,25 @@
 <?= $this->section('js') ?>
 <script>
 $(document).ready(function() {
-    $('#filtroData, #filtroProduto').on('input change', function() {
-        var dataFiltro = $('#filtroData').val();
-        var produtoFiltro = $('#filtroProduto').val().toLowerCase();
+    $('#filtroGeral').on('input', function() {
+        var filtro = $(this).val().toLowerCase().trim();
 
         $('.entrada-card').each(function() {
             var card = $(this);
-            var dataCard = card.data('data');
-            var produtoCard = card.data('produto').toLowerCase();
+            var produto = card.data('produto') ? card.data('produto').toString().toLowerCase() : '';
+            var cor = card.data('cor') ? card.data('cor').toString().toLowerCase() : '';
+            var categoria = card.data('categoria') ? card.data('categoria').toString().toLowerCase() : '';
+            var quantidade = card.data('quantidade') ? card.data('quantidade').toString() : '';
+            var motivo = card.data('motivo') ? card.data('motivo').toString().toLowerCase() : '';
 
-            var matchData = !dataFiltro || dataCard.includes(dataFiltro);
-            var matchProduto = !produtoFiltro || produtoCard.includes(produtoFiltro);
+            var conteudo = produto + ' ' + cor + ' ' + categoria + ' ' + quantidade + ' ' + motivo;
 
-            card.toggle(matchData && matchProduto);
+            if (conteudo.includes(filtro)) {
+                card.show();
+            } else {
+                card.hide();
+            }
         });
-    });
-
-    $('#btnLimparFiltros').click(function() {
-        $('#filtroData').val('');
-        $('#filtroProduto').val('');
-        $('.entrada-card').show();
     });
 });
 </script>

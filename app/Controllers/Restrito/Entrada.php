@@ -24,12 +24,17 @@ class Entrada extends BaseController
         $TbProdutoEntrada = new TbProdutoEntrada();
 
         $this->dados['tb_produto_entrada'] = $TbProdutoEntrada
-                                                ->select('tb_produto_entrada.*, tb_produto.nome AS "produto", ref_categoria.categoria')
+                                                ->select('tb_produto_entrada.*, tb_produto.nome AS "produto", ref_categoria.categoria, ref_motivo_entrada.motivo_entrada')
                                                 ->join('tb_produto', 'tb_produto.id_produto=tb_produto_entrada.id_produto')
                                                 ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
+                                                ->join('ref_motivo_entrada', 'ref_motivo_entrada.id_motivo_entrada=tb_produto_entrada.id_motivo_entrada')
                                                 ->where('tb_produto_entrada.data_entrada BETWEEN "' . $data_inicio . '" AND "' . $data_fim . '"')
                                                 ->orderBy('data_entrada', 'DESC')
                                                 ->findAll();
+
+        foreach ($this->dados['tb_produto_entrada'] as $key => $value) {
+            $this->dados['tb_produto_entrada'][$key]['TbProduto'] = (new TbProduto())->find($value['id_produto']);
+        }
 
         $this->dados['data_inicio'] = $data_inicio;
         $this->dados['data_fim'] = $data_fim;
@@ -45,6 +50,12 @@ class Entrada extends BaseController
                                     ->select('tb_produto.*, ref_categoria.categoria')
                                     ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
                                     ->find($id_produto);
+
+                                    
+
+
+            $this->dados['produto']['cor_nome'] = getNomeCorProduto($this->dados['produto'] );
+            $this->dados['produto']['cor_hexa'] = getHexaCorProduto($this->dados['produto'] );
         }
 
         if($id_produto_entrada){
@@ -56,9 +67,9 @@ class Entrada extends BaseController
         $this->dados['ref_motivo_entrada']  = (new RefMotivoEntrada())->orderBy('motivo_entrada', 'ASC')->findAll();
         $this->dados['entradas']  = (new TbProdutoEntrada())
                                     ->select('tb_produto_entrada.*, ref_local.local as "local", tb_usuario.nome AS "usuarioCriacao", ref_motivo_entrada.motivo_entrada ')
-                                    ->join('tb_usuario', 'tb_usuario.id_usuario=tb_produto_entrada.user_created')
+                                    ->join('tb_usuario', 'tb_usuario.id_usuario=tb_produto_entrada.user_created','left')
                                     ->join('ref_motivo_entrada', 'ref_motivo_entrada.id_motivo_entrada=tb_produto_entrada.id_motivo_entrada', 'left')
-                                    ->join('ref_local', 'ref_local.id_local=tb_produto_entrada.id_local')
+                                    ->join('ref_local', 'ref_local.id_local=tb_produto_entrada.id_local', 'left')
                                     ->where('id_produto', $id_produto)
                                     ->orderBy('data_entrada','DESC')
                                     ->findAll();
@@ -157,9 +168,12 @@ class Entrada extends BaseController
     public function formularioMultiplas()
     {
         $this->dados['produtos'] = (new TbProduto())
-        ->select('tb_produto.*, ref_categoria.categoria')
-        ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
-        ->findAll();
+                                    ->select('tb_produto.*, ref_categoria.categoria')
+                                    ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
+                                    ->findAll();
+
+        $this->dados['ref_motivo_entrada']  = (new RefMotivoEntrada())->orderBy('motivo_entrada', 'ASC')->findAll();
+        $this->dados['ref_local']           = (new RefLocal())->orderBy('local', 'ASC')->findAll();
 
         return view('restrito/produto/entrada/formulario_multiplas', $this->dados);
     }
@@ -172,8 +186,10 @@ class Entrada extends BaseController
         }else{
 
             $rules = [
-                'data_entrada' => 'required|valid_date',
+                'data_entrada'  => 'required|valid_date',
                 'observacoes'   => 'permit_empty|max_length[500]',
+                'id_local'      => 'required',
+                'id_motivo_entrada'  => 'required',
             ];
 
             $messages   = [
@@ -183,6 +199,12 @@ class Entrada extends BaseController
                 ],
                'observacoes' => [
                     'max_length' => 'A quantidade de caracteres informada está maior que o permitido, máximo 500 caracteres.',
+                ],
+                'id_local' => [
+                    'required' => 'Campo obrigatório.',
+                ],
+                'id_motivo_entrada' => [
+                    'required' => 'Campo obrigatório.',
                 ],
             ];
 
@@ -197,20 +219,36 @@ class Entrada extends BaseController
 
             $produtos = $this->request->getPost('produtos');
 
-            $data_entrada   = $this->request->getPost('data_entrada');
-            $observacoes    = $this->request->getPost('observacoes');
-          
+            $data_entrada       = $this->request->getPost('data_entrada');
+            $observacoes        = $this->request->getPost('observacoes');
+            $id_local           = $this->request->getPost('id_local');
+            $id_motivo_entrada  = $this->request->getPost('id_motivo_entrada');
+
             foreach ($produtos as $produto) {
                 $id_produto = $produto['id_produto'];
                 $quantidade = $produto['quantidade'];
 
-                array_push($entradas, [
-                    'id_produto' => $id_produto,
-                    'data_entrada' => $data_entrada,
-                    'quantidade' => $quantidade,
-                    'observacoes' => $observacoes,
-                ]);
-
+                if(is_array($id_produto)){
+                    foreach ($id_produto as $value) {
+                        array_push($entradas, [
+                            'id_produto' => $value,
+                            'data_entrada' => $data_entrada,
+                            'quantidade' => $quantidade,
+                            'observacoes' => $observacoes,
+                            'id_local' => $id_local,
+                            'id_motivo_entrada' => $id_motivo_entrada,
+                        ]);
+                    }
+                }else{
+                    array_push($entradas, [
+                        'id_produto' => $id_produto,
+                        'data_entrada' => $data_entrada,
+                        'quantidade' => $quantidade,
+                        'observacoes' => $observacoes,
+                        'id_local' => $id_local,
+                        'id_motivo_entrada' => $id_motivo_entrada,
+                    ]);
+                }
             }
 
             $TbProdutoEntrada = new TbProdutoEntrada();
