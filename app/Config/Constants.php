@@ -1,6 +1,6 @@
 <?php
 
-defined('NAME_APP') || define('NAME_APP', 'App');
+defined('NAME_APP') || define('NAME_APP', 'Móveis Carvalho');
 
 
 

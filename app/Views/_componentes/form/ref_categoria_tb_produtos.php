@@ -10,6 +10,11 @@ $TbProduto = (new TbProduto())
     ->orderBy('saldoEstoque', 'DESC')
     ->findAll();
 
+foreach ($TbProduto as $key => $produto) {
+    $TbProduto[$key]['cor_nome'] = getNomeCorProduto($produto);
+    $TbProduto[$key]['cor_hexa'] = getHexaCorProduto($produto);
+}
+
 $categoriasSelecionadas = $_GET['ref_categoria'] ?? [];
 $produtosSelecionados = $_GET['tb_produtos'] ?? [];
 ?>
@@ -38,81 +43,125 @@ $produtosSelecionados = $_GET['tb_produtos'] ?? [];
 
 <?= $this->section('js') ?>
 <script>
-    const produtosData = <?= json_encode($TbProduto) ?>;
-    const produtosSelecionados = <?= json_encode($produtosSelecionados) ?>;
-    const categoriasSelecionadas = <?= json_encode($categoriasSelecionadas) ?>;
+const produtosData = <?= json_encode($TbProduto) ?>;
+const produtosSelecionados = <?= json_encode($produtosSelecionados) ?>;
+const categoriasSelecionadas = <?= json_encode($categoriasSelecionadas) ?>;
 
-    $('#ref_categoria, #tb_produtos').select2({
-        width: '100%',
-        placeholder: 'Selecione uma ou mais opções'
-    });
+// Inicializa Select2: categorias simples, produtos com template
+$('#ref_categoria').select2({
+    width: '100%',
+    placeholder: 'Selecione uma ou mais opções'
+});
 
-    // Expandir "__all__" para todos os valores
-    function expandirSelectAll($select) {
-        const todosIds = $select.find('option').map(function () {
-            const val = $(this).val();
-            return val !== '__all__' ? val : null;
-        }).get();
+$('#tb_produtos').select2({
+    width: '100%',
+    placeholder: 'Selecione uma ou mais opções',
+    templateResult: formatSelectOption,
+    templateSelection: formatSelectSelection
+});
 
-        $select.val(todosIds).trigger('change');
+// Formatação visual no Select2 (produtos: lista de opções)
+function formatSelectOption(data) {
+    if (!data.id) return data.text;
+    const $option = $(data.element);
+    const nome = $option.data('nome') || data.text;
+    const codigo = $option.data('codigo') || '';
+    const cor = $option.data('cor') || '';
+    const hexa = $option.data('hexa') || '';
+
+    if (!hexa) return nome;
+
+    return $(`
+        <span>
+            <span style="display:inline-block;width:15px;height:15px;background-color:${hexa};margin-right:5px;border:1px solid #000;border-radius:3px;"></span>
+            ${nome} (${codigo}) - ${cor}
+        </span>
+    `);
+}
+
+// Formatação visual no Select2 (produtos: seleção ativa)
+function formatSelectSelection(data) {
+    if (!data.id) return data.text;
+    const $option = $(data.element);
+    const nome = $option.data('nome') || data.text;
+    const codigo = $option.data('codigo') || '';
+    const cor = $option.data('cor') || '';
+
+    return `${nome} (${codigo}) - ${cor}`;
+}
+
+// Expandir "__all__" para todos
+function expandirSelectAll($select) {
+    const todosIds = $select.find('option').map(function () {
+        const val = $(this).val();
+        return val !== '__all__' ? val : null;
+    }).get();
+    $select.val(todosIds).trigger('change');
+}
+
+// Seleção de categorias e produtos
+$('#ref_categoria').on('select2:select', function (e) {
+    if (e.params.data.id === '__all__') expandirSelectAll($('#ref_categoria'));
+});
+$('#tb_produtos').on('select2:select', function (e) {
+    if (e.params.data.id === '__all__') expandirSelectAll($('#tb_produtos'));
+});
+
+// Carregar produtos com base nas categorias selecionadas
+function carregarProdutosPorCategoria() {
+    const $produtos = $('#tb_produtos');
+    const categorias = $('#ref_categoria').val() || [];
+
+    $produtos.empty().append('<option value="__all__">Todos</option>');
+
+    if (categorias.length === 0) {
+        $produtos.val(null).trigger('change');
+        return;
     }
 
-    $('#ref_categoria').on('select2:select', function (e) {
-        if (e.params.data.id === '__all__') {
-            expandirSelectAll($('#ref_categoria'));
-        }
-    });
-
-    $('#tb_produtos').on('select2:select', function (e) {
-        if (e.params.data.id === '__all__') {
-            expandirSelectAll($('#tb_produtos'));
-        }
-    });
-
-    // Função para carregar produtos com base nas categorias selecionadas
-    function carregarProdutosPorCategoria() {
-        const $produtos = $('#tb_produtos');
-        const categorias = $('#ref_categoria').val() || [];
-
-        $produtos.empty().append('<option value="__all__">Todos</option>');
-
-        if (categorias.length === 0) {
-            // Nenhuma categoria: não mostra nada
-            $produtos.val(null).trigger('change');
-            return;
-        }
-
-        if (categorias.includes('__all__')) {
-            // Mostrar todos os produtos
-            produtosData.forEach(prod => {
-                const isSelecionado = produtosSelecionados.includes(prod.id_produto.toString());
-                $produtos.append(new Option(prod.nome, prod.id_produto, false, isSelecionado));
-            });
-            $produtos.trigger('change');
-            return;
-        }
-
-        // Mostrar produtos da(s) categoria(s) selecionada(s)
-        const selecionadosValidos = [];
+    if (categorias.includes('__all__')) {
         produtosData.forEach(prod => {
-            if (categorias.includes(prod.id_categoria.toString())) {
-                const isSelecionado = produtosSelecionados.includes(prod.id_produto.toString());
-                $produtos.append(new Option(prod.nome, prod.id_produto, false, isSelecionado));
-                if (isSelecionado) selecionadosValidos.push(prod.id_produto.toString());
-            }
+            const isSelecionado = produtosSelecionados.includes(prod.id_produto.toString());
+            $produtos.append(new Option(prod.nome, prod.id_produto, false, isSelecionado))
+                .find(`option[value="${prod.id_produto}"]`)
+                .attr('data-nome', prod.nome)
+                .attr('data-codigo', prod.codigo)
+                .attr('data-cor', prod.cor_nome)
+                .attr('data-hexa', prod.cor_hexa);
         });
-
-        $produtos.val(selecionadosValidos).trigger('change');
+        $produtos.trigger('change');
+        return;
     }
 
-    // Evento: ao alterar categorias
-    $('#ref_categoria').on('change', function () {
-        carregarProdutosPorCategoria();
+    const selecionadosValidos = [];
+    produtosData.forEach(prod => {
+        if (categorias.includes(prod.id_categoria.toString())) {
+            const isSelecionado = produtosSelecionados.includes(prod.id_produto.toString());
+            $produtos.append(new Option(prod.nome, prod.id_produto, false, isSelecionado))
+                .find(`option[value="${prod.id_produto}"]`)
+                .attr('data-nome', prod.nome)
+                .attr('data-codigo', prod.codigo)
+                .attr('data-cor', prod.cor_nome)
+                .attr('data-hexa', prod.cor_hexa);
+            if (isSelecionado) selecionadosValidos.push(prod.id_produto.toString());
+        }
     });
 
-    // Ao carregar a página
-    $(document).ready(function () {
-        carregarProdutosPorCategoria();
+    $produtos.val(selecionadosValidos).trigger('change');
+}
+
+// Evento: ao alterar categorias
+$('#ref_categoria').on('change', function () {
+    carregarProdutosPorCategoria();
+});
+
+// Ao carregar a página
+$(document).ready(function () {
+    produtosData.forEach(p => {
+        p.cor_nome = p.cor_nome || '-';
+        p.cor_hexa = p.cor_hexa || '#cccccc';
     });
+    carregarProdutosPorCategoria();
+});
 </script>
 <?= $this->endSection() ?>

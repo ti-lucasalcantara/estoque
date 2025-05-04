@@ -72,151 +72,67 @@
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
-                <h5 class="mt-4">CAM-001 | Cama Box Casal</h5>
-                <div class="table-responsive mb-5">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Quantidade</th>
-                                <th>Usuário</th>
-                                <th>Observações</th>
-                                <th>Saldo após</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>2024-06-01</td>
-                                <td><span class="badge bg-success">Entrada manual</span></td>
-                                <td>50</td>
-                                <td>João Souza</td>
-                                <td>Reposição inicial</td>
-                                <td>50</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>2024-06-03</td>
-                                <td><span class="badge bg-danger">Saída por consumo</span></td>
-                                <td>10</td>
-                                <td>Maria Clara</td>
-                                <td>Uso interno</td>
-                                <td>40</td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>2024-06-04</td>
-                                <td><span class="badge bg-success">Entrada manual</span></td>
-                                <td>20</td>
-                                <td>Lucas Alcântara</td>
-                                <td>Nova compra</td>
-                                <td>60</td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>2024-06-06</td>
-                                <td><span class="badge bg-danger">Saída por transferência</span></td>
-                                <td>15</td>
-                                <td>João Souza</td>
-                                <td>Transferência de estoque</td>
-                                <td>45</td>
-                            </tr>
-                            <tr>
-                                <td>5</td>
-                                <td>2024-06-07</td>
-                                <td><span class="badge bg-danger">Saída por consumo</span></td>
-                                <td>5</td>
-                                <td>Aline Castro</td>
-                                <td>Distribuição</td>
-                                <td>40</td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-info">
-                                <td colspan="6" class="text-end"><strong>Saldo atual</strong></td>
-                                <td><strong>40</strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
 
-                <h5 class="mt-4">Luvas de Procedimento</h5>
-                <div class="table-responsive mb-5">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Quantidade</th>
-                                <th>Usuário</th>
-                                <th>Origem/Destino</th>
-                                <th>Observações</th>
-                                <th>Saldo após</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>2024-06-02</td>
-                                <td><span class="badge bg-success">Entrada manual</span></td>
-                                <td>100</td>
-                                <td>Lucas Alcântara</td>
-                                <td>Fornecedor: MedPro</td>
-                                <td>Compra inicial</td>
-                                <td>100</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>2024-06-03</td>
-                                <td><span class="badge bg-danger">Saída por consumo</span></td>
-                                <td>30</td>
-                                <td>Maria Clara</td>
-                                <td>Setor: Fiscalização</td>
-                                <td>Uso diário</td>
-                                <td>70</td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>2024-06-04</td>
-                                <td><span class="badge bg-success">Entrada por devolução</span></td>
-                                <td>10</td>
-                                <td>João Souza</td>
-                                <td>Setor: Enfermaria</td>
-                                <td>Retorno de material</td>
-                                <td>80</td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>2024-06-05</td>
-                                <td><span class="badge bg-danger">Saída para descarte</span></td>
-                                <td>5</td>
-                                <td>Aline Castro</td>
-                                <td>Lixo hospitalar</td>
-                                <td>Pacote danificado</td>
-                                <td>75</td>
-                            </tr>
-                            <tr>
-                                <td>5</td>
-                                <td>2024-06-06</td>
-                                <td><span class="badge bg-danger">Saída por consumo</span></td>
-                                <td>15</td>
-                                <td>Lucas Alcântara</td>
-                                <td>Setor: Atendimento</td>
-                                <td>Distribuição de rotina</td>
-                                <td>60</td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-info">
-                                <td colspan="7" class="text-end"><strong>Saldo atual</strong></td>
-                                <td><strong>60</strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                <?php if (isset($produtos) && !empty($produtos)) : ?>
+                    <?php foreach ($produtos as $produto) : ?>
+                        <h5>
+                            <span style="display:inline-block;width:15px;height:15px;background-color:<?=getHexaCorProduto($produto)?>;margin-right:5px;border:1px solid #000;border-radius:3px;"></span>
+                            <?= esc($produto['codigo']) ?> | <?= esc($produto['nome']) ?> 
+                            <small>(<?=getNomeCorProduto($produto)?>)</small>
+                            <br>
+                            <small class="text-muted">(<?= esc($produto['categoria']) ?>)</small>
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-striped align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Data</th>
+                                        <th>Tipo</th>
+                                        <th>Quantidade</th>
+                                        <th>Usuário</th>
+                                        <th>Saldo após</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $saldo = 0;
+                                    $contador = 1;
+                                    foreach ($movimentos as $movimento) :
+                                        if ($movimento['id_produto'] != $produto['id_produto']) continue;
+
+                                        // Atualiza saldo
+                                        if ($movimento['tipo'] === 'entrada') {
+                                            $saldo += $movimento['quantidade'];
+                                            $badge = '<span class="badge bg-success">' . esc($movimento['motivo']) . '</span>';
+                                        } else {
+                                            $saldo -= $movimento['quantidade'];
+                                            $badge = '<span class="badge bg-danger">' . esc($movimento['motivo']) . '</span>';
+                                        }
+                                    ?>
+                                        <tr>
+                                            <td><?= $contador++ ?></td>
+                                            <td><?= date('d/m/Y', strtotime($movimento['data'])) ?></td>
+                                            <td><?= $badge ?></td>
+                                            <td><?= esc($movimento['quantidade']) ?></td>
+                                            <td><?= esc($movimento['usuario']) ?></td>
+                                            <td><?= $saldo ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-info">
+                                        <td colspan="5" class="text-end"><strong>Saldo</strong></td>
+                                        <td><strong><?= $saldo ?></strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <p>- Nenhum produto encontrado -</p>
+                <?php endif; ?>
+
             </div>
         </div>
     </div>
