@@ -53,6 +53,16 @@ class Dashboard extends BaseController
         ->limit(5)
         ->findAll();
 
+        $topProdutosSaidas = $tbProduto
+        ->select('tb_produto.id_produto, tb_produto.nome, ref_categoria.categoria, tb_produto.json,
+                  COALESCE(SUM(s.quantidade), 0) as saidas')
+        ->join('ref_categoria', 'ref_categoria.id_categoria = tb_produto.id_categoria')
+        ->join('tb_produto_saida s', 's.id_produto = tb_produto.id_produto AND s.data_saida >= "' . date('Y-m-d', strtotime('-30 days')) . '"', 'left')
+        ->groupBy('tb_produto.id_produto, tb_produto.nome, ref_categoria.categoria, tb_produto.json')
+        ->orderBy('saidas', 'DESC')
+        ->limit(5)
+        ->findAll();
+
         // Gráfico (últimos 7 dias)
         $graficoLabels = [];
         $graficoEntradas = [];
@@ -88,6 +98,7 @@ class Dashboard extends BaseController
             'produtosCriticos'   => $produtosCriticos,
             'categoriasQtd'      => $categoriasQtd,
             'topProdutos'        => $topProdutos,
+            'topProdutosSaidas'  => $topProdutosSaidas,
             'graficoLabels'      => $graficoLabels,
             'graficoEntradas'    => $graficoEntradas,
             'graficoSaidas'      => $graficoSaidas,

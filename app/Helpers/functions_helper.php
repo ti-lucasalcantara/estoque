@@ -171,3 +171,39 @@ if (!function_exists('getNomeCorProduto')) {
         return $value;
     }
 }
+
+/**
+ * Valida se a quantidade informada não ultrapassa o saldo disponível do produto.
+ *
+ * @param int $id_produto
+ * @param int $quantidadeInformada
+ * @return bool|string  Retorna true se válido ou uma mensagem de erro (string) se inválido
+ */
+if (!function_exists('validarQuantidadeSaida')) {
+    function validarQuantidadeSaida($id_produto, $quantidadeInformada)
+    {
+        $TbProduto = new \App\Models\TbProduto();
+
+        $produto = $TbProduto
+            ->select('nome, json, fn_saldo_estoque(id_produto) AS saldo')
+            ->where('id_produto', $id_produto)
+            ->first();
+
+        if (!$produto) {
+            return  ['title' => 'Falha ao registrar saída', 'text' => 'Produto não encontrado.'];
+        }
+
+        $saldoAtual = $produto['saldo'];
+
+        if ($quantidadeInformada > $saldoAtual) {
+            $produtoNome = '<span style="display:inline-block;width:15px;height:15px;background-color:'.getHexaCorProduto($produto).';margin-right:5px;border:1px solid #000;border-radius:3px;"></span> '.$produto['nome']. " (".getNomeCorProduto($produto).") ";
+
+            return  [
+                        'title' => "Quantidade indisponível<br>Falha ao registrar saída do produto:<br>$produtoNome", 
+                        'text' => "Quantidade Informada: $quantidadeInformada<br>Saldo atual: $saldoAtual",
+                    ];
+        }
+
+        return true;
+    }
+}

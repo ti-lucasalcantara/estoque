@@ -68,6 +68,8 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
 
         $routes->get('saldo-estoque', 'Relatorio::saldoEstoque', ['as' => 'restrito.relatorio.saldoEstoque']);
         $routes->get('movimento', 'Relatorio::movimentacaoProduto', ['as' => 'restrito.relatorio.movimentacaoProduto']);
+        $routes->get('estoque-minimo', 'Relatorio::estoqueMinimo', ['as' => 'restrito.relatorio.estoqueMinimo']);
+        $routes->get('pouca-movimentacao', 'Relatorio::poucaMovimentacao', ['as' => 'restrito.relatorio.poucaMovimentacao']);
         
     });
 

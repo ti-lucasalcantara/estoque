@@ -84,6 +84,21 @@ class Saida extends BaseController
             return redirect()->back()->withInput();   
         }else{
 
+            $resultadoValidacao = validarQuantidadeSaida($this->request->getPost('id_produto'), $this->request->getPost('quantidade'));
+
+            if ($resultadoValidacao !== true) {
+
+                session()->setFlashdata(getMessageFail('sweetalert', 
+                                                        [
+                                                            'title'=> $resultadoValidacao['title'] ?? 'Falha ao registrar saída', 
+                                                            'text' => $resultadoValidacao['text'] ?? 'Quantidade indisponível',
+                                                        ]
+                                                    )
+                                        );
+
+                return redirect()->back()->withInput();
+            }
+
             $edit = false;
             $id_produto_saida = $this->request->getPost('id_produto_saida') ?? '';
             if(isset($id_produto_saida) && !empty($id_produto_saida)){
@@ -220,14 +235,26 @@ class Saida extends BaseController
             $produtos = $this->request->getPost('produtos');
 
             $data_saida       = $this->request->getPost('data_saida');
-            $observacoes        = $this->request->getPost('observacoes');
-            $id_local           = $this->request->getPost('id_local');
+            $observacoes      = $this->request->getPost('observacoes');
+            $id_local         = $this->request->getPost('id_local');
             $id_motivo_saida  = $this->request->getPost('id_motivo_saida');
 
             foreach ($produtos as $produto) {
                 $id_produto = $produto['id_produto'];
                 $quantidade = $produto['quantidade'];
 
+                $resultadoValidacao = validarQuantidadeSaida($id_produto, $quantidade);
+                if ($resultadoValidacao !== true) {
+                    session()->setFlashdata(getMessageFail('sweetalert', 
+                                                            [
+                                                                'title'=> $resultadoValidacao['title'] ?? 'Falha ao registrar saída', 
+                                                                'text' => $resultadoValidacao['text'] ?? 'Quantidade indisponível',
+                                                            ]
+                                                        )
+                                            );
+                    return redirect()->back()->withInput();
+                }
+                
                 if(is_array($id_produto)){
                     foreach ($id_produto as $value) {
                         array_push($saidas, [

@@ -20,11 +20,11 @@ class Relatorio extends \App\Controllers\BaseController
             ['titulo' => 'Saldo atual de estoque', 'rota' => 'restrito.relatorio.saldoEstoque'],
             ['titulo' => 'Movimentação de produtos', 'rota' => 'restrito.relatorio.movimentacaoProduto'],
 
-            ['titulo' => 'Produtos sem movimentação', 'rota' => 'relatorios/sem_movimentacao'],
-            ['titulo' => 'Produtos em estoque minimo', 'rota' => 'relatorios/sem_movimentacao'],
+            ['titulo' => 'Produtos com pouca movimentação', 'rota' => 'restrito.relatorio.poucaMovimentacao'],
+            ['titulo' => 'Produtos em estoque minimo', 'rota' => 'restrito.relatorio.estoqueMinimo'],
             
-            ['titulo' => 'Saídas por usuário/setor', 'rota' => 'relatorios/saida_usuario'],
-            ['titulo' => 'Consumo por produto', 'rota' => 'relatorios/consumo_produto'],
+            //['titulo' => 'Saídas por usuário/setor', 'rota' => 'relatorios/saida_usuario'],
+            //['titulo' => 'Consumo por produto', 'rota' => 'relatorios/consumo_produto'],
             
         ];
 
@@ -143,6 +143,82 @@ class Relatorio extends \App\Controllers\BaseController
         return view('restrito/relatorio/movimentacaoProduto', $this->dados);
     }
 
-    
+    public function estoqueMinimo(){
+
+        $parametros = [];
+        $parametros['ref_categoria'] = $this->request->getGet('ref_categoria') ?? '';
+        $parametros['tb_produtos'] = $this->request->getGet('tb_produtos') ?? '';
+        
+        if(isset($parametros) && !empty($parametros['tb_produtos'])){
+            // Produtos abaixo do estoque mínimo
+            $produtosCriticos = (new TbProduto())
+                ->select('tb_produto.*, fn_saldo_estoque(tb_produto.id_produto) AS saldoEstoque, ref_categoria.categoria')
+                ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
+                ->whereIn('id_produto', $parametros['tb_produtos'])
+                ->having('saldoEstoque < estoque_minimo')
+                ->orderBy('tb_produto.nome', 'ASC')
+                ->findAll();
+        }
+
+
+        $this->dados['produtosCriticos'] = $produtosCriticos ?? [];
+
+        return view('restrito/relatorio/estoqueMinimo', $this->dados);
+    }
+
+
+    public function poucaMovimentacao()
+    {
+
+        $parametros = [];
+        $parametros['ref_categoria']    = $this->request->getGet('ref_categoria') ?? '';
+        $parametros['tb_produtos']      = $this->request->getGet('tb_produtos') ?? '';
+        $parametros['tipo_periodo']     = $this->request->getGet('tipo_periodo') ?? '';
+        $parametros['data_inicio']      = $this->request->getGet('data_inicio') ?? '';
+        $parametros['data_fim']         = $this->request->getGet('data_fim') ?? '';
+        
+        $produtos = [];
+        if(isset($parametros) && !empty($parametros['tb_produtos'])){
+
+            // Consulta para buscar produtos com movimentação zero ou abaixo do limite
+            $builder = (new \App\Models\TbProduto())->builder('tb_produto p');
+            $builder->select("
+                p.id_produto,
+                p.nome,
+                p.codigo,
+                p.json,
+                ref_categoria.categoria,
+                COALESCE(SUM(s.quantidade), 0) AS total_saidas
+            ");
+            $builder->join('ref_categoria', 'ref_categoria.id_categoria = p.id_categoria', 'left');
+            $builder->join('tb_produto_saida s', 's.id_produto = p.id_produto', 'left');
+            
+            // Aplica filtro de produtos, se informado
+            if (!empty($parametros['tb_produtos'])) {
+                $builder->whereIn('p.id_produto', $parametros['tb_produtos']);
+            }
+            
+            // Aplica filtro de data, se necessário
+            if (
+                isset($parametros['tipo_periodo']) && 
+                $parametros['tipo_periodo'] !== 'tudo' &&
+                !empty($parametros['data_inicio']) && 
+                !empty($parametros['data_fim'])
+            ) {
+                $builder->where('s.data_saida >=', $parametros['data_inicio']);
+                $builder->where('s.data_saida <=', $parametros['data_fim']);
+            }
+            
+            $builder->groupBy('p.id_produto');
+            $builder->orderBy('total_saidas', 'ASC');
+            $builder->limit(30);
+            
+            $produtos = $builder->get()->getResultArray();
+        }
+
+        $this->dados['produtos'] = $produtos;
+
+        return view('restrito/relatorio/poucaMovimentacao', $this->dados);
+    }
 
 }

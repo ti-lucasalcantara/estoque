@@ -129,7 +129,44 @@
 <!-- Top produtos -->
 <div class="card mt-4">
     <div class="card-header bg-success text-white">
-        <h5>🏆 Top 5 Produtos Mais Movimentados</h5>
+        <h5>🏆 Top 5 Produtos com Mais Saídas</h5>
+    </div>
+
+    <div class="card-body table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Saídas</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                if(isset($topProdutosSaidas) && !empty($topProdutosSaidas)):
+                    foreach ($topProdutosSaidas as $p) : ?>
+                    <tr>
+                        <td>
+                            <span style="display:inline-block;width:15px;height:15px;background-color:<?=getHexaCorProduto($p)?>;margin-right:5px;border:1px solid #000;border-radius:3px;"></span>
+                            <?= esc($p['nome']) ?>
+                            <small class="text-muted">(<?=getNomeCorProduto($p)?>)</small>
+                        </td>
+                        <td><?= esc($p['categoria']) ?></td>
+                        <td><?= esc($p['saidas']) ?></td>
+                    </tr>
+                    <?php 
+                    endforeach;
+                endif;
+                ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5><i class="fa fa-refresh"></i> Top 5 Produtos Mais Movimentados</h5>
     </div>
 
     <div class="card-body table-responsive">
