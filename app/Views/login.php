@@ -117,7 +117,7 @@ $background_env = env('CI_ENVIRONMENT') == 'testing' ? 'background: url(/assets/
                     <div class="input-group mb-3">
                         <span class="input-group-text"><i class="fa fa-solid fa-user"></i></span>
                         <div class="form-floating flex-grow-1">
-                            <input type="text" name="email" class="form-control <?=empty(validation_show_error('email')) ? '' : 'is-invalid'?>" id="email" placeholder="E-mail" value="<?=set_value('email', 'ti.lucasalcantara@gmail.com')?>">
+                            <input type="text" name="email" class="form-control <?=empty(validation_show_error('email')) ? '' : 'is-invalid'?>" id="email" placeholder="E-mail" value="<?=set_value('email')?>">
                             <label for="email">E-mail</label>
                         </div>
                         <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('email') ?></small>
@@ -128,7 +128,7 @@ $background_env = env('CI_ENVIRONMENT') == 'testing' ? 'background: url(/assets/
                             <i id="iconToggle" class="fa fa-solid fa-eye"></i>
                         </span>
                         <div class="form-floating flex-grow-1">
-                            <input type="password" name="senha" class="form-control <?= empty(validation_show_error('senha')) ? '' : 'is-invalid' ?>" id="senha" placeholder="Senha" value="<?= set_value('senha', '159357**') ?>">
+                            <input type="password" name="senha" class="form-control <?= empty(validation_show_error('senha')) ? '' : 'is-invalid' ?>" id="senha" placeholder="Senha" value="<?= set_value('senha') ?>">
                             <label for="senha">Senha</label>
                         </div>
                         <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('senha') ?></small>

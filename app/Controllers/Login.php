@@ -58,8 +58,6 @@ class Login extends BaseController
                 return redirect()->back()->withInput();   
             }
 
-            dd($usuario);
-
             // Criar sessão de LOGIN
             $session = [
                 'usuario_logado'  => [
