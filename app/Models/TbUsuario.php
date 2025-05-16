@@ -45,12 +45,12 @@ class TbUsuario extends Model
     protected $afterDelete    = [];
     
     protected function userCreated($data) {
-        $data['data']['user_created'] = session('usuario_logado')['id_usuario'] ?? 1; 
+        $data['data']['user_created'] = session('usuario_logado')['id_usuario']; 
         return $data;
     }
 
     protected function userUpdated($data) {
-        $data['data']['user_updated'] = session('usuario_logado')['id_usuario'] ?? 1; 
+        $data['data']['user_updated'] = session('usuario_logado')['id_usuario']; 
         return $data;
     }
 
