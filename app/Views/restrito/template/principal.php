@@ -13,7 +13,7 @@
 		<title><?=NAME_APP?></title>
 
 		<!--Favicon -->
-		<link rel="icon" href="/favicon.ico" type="image/x-icon"/>
+		<link rel="icon" href="/favicon.png" type="image/x-icon"/>
 
 		<!--Bootstrap css -->
 		<link id="style" href="/assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
