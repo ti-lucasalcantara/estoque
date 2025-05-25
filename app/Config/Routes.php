@@ -85,5 +85,9 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
 
     });
 
+    // Senha    
+    $routes->get('resetar-senha', 'Senha::index', ['as' => 'restrito.resetar-senha']);
+    $routes->post('resetar-senha', 'Senha::salvar', ['as' => 'restrito.salvar-nova-senha']);
+
 
 });
