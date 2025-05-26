@@ -54,7 +54,8 @@ class Produto extends \App\Controllers\BaseController
             }
             $rules = [
                 'nome' => 'required|max_length[255]',
-                'codigo' => 'required|max_length[100]|is_unique[tb_produto.codigo,id_produto,'.$id_produto.']',
+               // 'codigo' => 'required|max_length[100]|is_unique[tb_produto.codigo,id_produto,'.$id_produto.']',
+                'codigo' => 'required|max_length[100]',
                 'id_categoria' => 'required',
                 'estoque_minimo' => 'required',
                 'descricao'   => 'permit_empty|max_length[500]',
@@ -70,7 +71,7 @@ class Produto extends \App\Controllers\BaseController
                 ],
                 'codigo' => [
                     'required' => 'Campo obrigatório.',
-                    'is_unique' => 'Código já existente.',
+                   // 'is_unique' => 'Código já existente.',
                     'max_length' => 'A quantidade de caracteres informada está maior que o permitido.',
                 ],
                 'descricao' => [
