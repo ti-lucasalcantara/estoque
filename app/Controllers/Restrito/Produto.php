@@ -108,6 +108,7 @@ class Produto extends \App\Controllers\BaseController
             }
 
             if(!empty($this->request->getPost('json')['cor'])){
+                $image = $this->request->getFile('imagem');
                 foreach ($this->request->getPost('json')['cor'] as $key => $value) {
                     
                     $json['cor'] = [];
@@ -129,7 +130,7 @@ class Produto extends \App\Controllers\BaseController
                         $id_produto = $TbProduto->getInsertID();
                     }
         
-                    $url_imagem = uploadImagem( $this->request->getFile('imagem'), "uploads/produto/$id_produto/" );
+                    $url_imagem = uploadImagem( $image, "uploads/produto/$id_produto/" );
         
                     if($url_imagem && !empty($url_imagem)){
                         (new TbProdutoImagem())->salvarImagemPrincipal($id_produto, $url_imagem);
@@ -146,7 +147,8 @@ class Produto extends \App\Controllers\BaseController
                     $id_produto = $TbProduto->getInsertID();
                 }
     
-                $url_imagem = uploadImagem( $this->request->getFile('imagem'), "uploads/produto/$id_produto/" );
+                $image = $this->request->getFile('imagem');
+                $url_imagem = uploadImagem( $image, "uploads/produto/$id_produto/" );
     
                 if($url_imagem && !empty($url_imagem)){
                     (new TbProdutoImagem())->salvarImagemPrincipal($id_produto, $url_imagem);
