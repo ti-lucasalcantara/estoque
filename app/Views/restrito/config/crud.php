@@ -139,7 +139,7 @@ if(isset($dados) && !empty($dados) && isset($camposVisiveis) && !empty($camposVi
                             <i class="fe fe-edit"></i> Editar
                         </a>
                         <?php
-                        if($tabela == 'tb_usuario' && $linha['id_usuario'] == 2 ) {
+                        if($tabela == 'tb_usuario' && $linha['id_usuario'] != 2 ) {
                         ?>
                         <a href="javascript:void(0);" data-tabela-excluir="<?=$tabela?>" data-id-excluir="<?=$linha[getIdNameTabela($tabela)]?>" data-url-excluir="<?=url_to('restrito.config.excluir')?>" data-mensagem-excluir="Confirma excluir este registro ?" class="btn btn-sm btn-outline-danger modalExcluir" >
                             <i class="fe fe-trash"></i> Excluir
