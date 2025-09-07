@@ -1,4 +1,5 @@
 <?php
+use App\Models\RefCor;
 
 if ( ! function_exists('abreviarNome') ){
     function abreviarNome( $nome=null ) {
@@ -126,6 +127,14 @@ if ( ! function_exists('getIdNameTabela') ){
             case 'ref_motivo_saida':
                 return 'id_motivo_saida';
                 break;
+
+            case 'ref_cor':
+                return 'id_cor';
+                break;
+                
+            case 'tb_usuario':
+                return 'id_usuario';
+                break;
                 
             default:
                 return 'id';
@@ -135,40 +144,23 @@ if ( ! function_exists('getIdNameTabela') ){
     }
 }
 
-
-
 if (!function_exists('getHexaCorProduto')) {
     function getHexaCorProduto($produto = null) {
-        if (!$produto || is_null($produto)) {
+        if (!$produto || is_null($produto) || !isset($produto['id_cor'])) {
             return false;
         }
-
-        $json = json_decode($produto['json'], true);
-
-        if (!isset($json['cor']) || empty($json['cor'])) {
-            return '';
-        }
-
-        $key = array_key_first($json['cor']);
-        return $key ?? '';
+        $refCor = (new RefCor())->find($produto['id_cor']);
+        return $refCor['hexadecimal'] ?? '';
     }
 }
 
 if (!function_exists('getNomeCorProduto')) {
     function getNomeCorProduto($produto = null) {
-        if (!$produto || is_null($produto)) {
+        if (!$produto || is_null($produto) || !isset($produto['id_cor'])) {
             return false;
         }
-
-        $json = json_decode($produto['json'], true);
-
-        if (!isset($json['cor']) || empty($json['cor'])) {
-            return '';
-        }
-
-        $key = array_key_first($json['cor']);
-        $value = $json['cor'][$key] ?? '';
-        return $value;
+        $refCor = (new RefCor())->find($produto['id_cor']);
+        return $refCor['nome'] ?? '';
     }
 }
 

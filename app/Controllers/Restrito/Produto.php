@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Restrito;
 use App\Models\TbProduto;
+use App\Models\RefCor;
 use App\Models\RefCategoria;
 use App\Models\TbProdutoImagem;
 use App\Models\RefCaracteristica;
@@ -32,7 +33,9 @@ class Produto extends \App\Controllers\BaseController
         }
 
         $this->dados['ref_categoria'] = (new RefCategoria())->orderBy('categoria', 'ASC')->findAll();
-        
+
+        $this->dados['ref_cor'] = (new RefCor())->orderBy('nome', 'ASC')->findAll();
+
         $this->dados['ref_caracteristica'] = (new RefCaracteristica())->whereIn('caracteristica', ['cor'])->orderBy('caracteristica', 'ASC')->findAll();
 
         return view('restrito/produto/formulario', $this->dados);
@@ -69,6 +72,9 @@ class Produto extends \App\Controllers\BaseController
                 'id_categoria' => [
                     'required' => 'Campo obrigatório.',
                 ],
+                'id_cor' => [
+                    'required' => 'Campo obrigatório.',
+                ],
                 'codigo' => [
                     'required' => 'Campo obrigatório.',
                    // 'is_unique' => 'Código já existente.',
@@ -94,7 +100,8 @@ class Produto extends \App\Controllers\BaseController
             $id_categoria       = $this->request->getPost('id_categoria');
             $descricao          = $this->request->getPost('descricao');
             $estoque_minimo     = $this->request->getPost('estoque_minimo');
-            
+            $cores              = $this->request->getPost('id_cor');
+
             $produto = [
                 'nome' => $nome,
                 'codigo' => $codigo,
@@ -102,58 +109,66 @@ class Produto extends \App\Controllers\BaseController
                 'descricao' => $descricao,
                 'estoque_minimo' => $estoque_minimo,
             ];
-
+            
             if($edit){
                 $produto['id_produto'] = $id_produto;
             }
 
-            if(!empty($this->request->getPost('json')['cor'])){
-                $image = $this->request->getFile('imagem');
-                foreach ($this->request->getPost('json')['cor'] as $key => $value) {
-                    
-                    $json['cor'] = [];
-                        
-                    $partes = explode("||",$value);
-                    $nome_cor = $partes[0] ?? 0;
-                    $hexa_cor = end($partes) ?? 0;
+            // Se não houver cor ou apenas uma, cadastra um produto normalmente
+            $numCores = is_array($cores) ? count($cores) : 0;
+            $image = $this->request->getFile('imagem');
+            $url_imagem = null;
 
-                    $json['cor'] = [
-                        $hexa_cor => $nome_cor,
-                    ];
+            // Faz upload da imagem uma vez, se existir
+            if ($image && $image->isValid() && !$image->hasMoved()) {
+                $url_imagem = uploadImagem($image, "temp/");
+            }
 
-                    $produto['json'] = json_encode($json);
-
-                    $TbProduto = new TbProduto();
-                    $save = $TbProduto->save($produto);
-
-                    if(!$id_produto){
-                        $id_produto = $TbProduto->getInsertID();
-                    }
-        
-                    $url_imagem = uploadImagem( $image, "uploads/produto/$id_produto/" );
-        
-                    if($url_imagem && !empty($url_imagem)){
-                        (new TbProdutoImagem())->salvarImagemPrincipal($id_produto, $url_imagem);
-                    }
-
+            if ($numCores <= 1) {
+                $cor = is_array($cores) && $numCores === 1 ? $cores[0] : null;
+                if ($cor !== null) {
+                    $produto['id_cor'] = $cor;
                 }
 
-            }else{
-               
-                $TbProduto = new TbProduto();
-                $save = $TbProduto->save($produto);
+                $id_produto = $this->cadastrarProduto($produto);
+                
+                $url_nova_imagem = null;
+                if(!is_null($url_imagem)){
+                    $url_nova_imagem = copiarImagemTempParaProduto($url_imagem, $id_produto);
+                }
+                
+                if ($url_nova_imagem && !empty($url_nova_imagem)) {
+                    (new TbProdutoImagem())->salvarImagemPrincipal($id_produto, $url_nova_imagem);
+                }
 
                 if(!$id_produto){
-                    $id_produto = $TbProduto->getInsertID();
+                    session()->setFlashdata(getMessageFail('sweetalert'));
+                    return redirect()->back()->withInput();
                 }
-    
-                $image = $this->request->getFile('imagem');
-                $url_imagem = uploadImagem( $image, "uploads/produto/$id_produto/" );
-    
-                if($url_imagem && !empty($url_imagem)){
-                    (new TbProdutoImagem())->salvarImagemPrincipal($id_produto, $url_imagem);
+                $save = true;
+            } else {
+                // Para cada cor, cadastra um produto e associa a mesma imagem
+                foreach ($cores as $cor) {
+                    $produtoCor = $produto;
+                    $produtoCor['id_cor'] = $cor;
+                    $id_produto = $this->cadastrarProduto($produtoCor);
+                    $url_nova_imagem = null;
+                    if(!is_null($url_imagem)){
+                        $url_nova_imagem = copiarImagemTempParaProduto($url_imagem, $id_produto);
+                    } 
+
+                    if ($url_nova_imagem && !empty($url_nova_imagem)) {
+                        (new TbProdutoImagem())->salvarImagemPrincipal($id_produto, $url_nova_imagem);
+                    }
+                    if(!$id_produto){
+                        session()->setFlashdata(getMessageFail('sweetalert'));
+                        return redirect()->back()->withInput();
+                    }
+                    $save = true;
                 }
             }
+
+            limparPastaTemp();
 
             if(!$save){
                 session()->setFlashdata(getMessageFail('sweetalert'));
@@ -167,6 +182,17 @@ class Produto extends \App\Controllers\BaseController
             }
             return redirect()->route('restrito.produto.index');
         }
+    }
+
+    private function cadastrarProduto($produto)
+    {
+        $id_produto = $produto['id_produto'] ?? false;
+        $TbProduto = new TbProduto();
+        $save = $TbProduto->save($produto);
+        if(!$id_produto){
+            $id_produto = $TbProduto->getInsertID();
+        }
+        return $id_produto;
     }
 
     

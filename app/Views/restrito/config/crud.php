@@ -27,18 +27,76 @@
 
             <?php foreach ($camposVisiveis as $campo): ?>
                 <?php if ( $campo == getIdNameTabela($tabela) ) continue; ?>
+                <?php 
+                    if ($campo === 'hexadecimal' && $tabela === 'ref_cor'){
+                        $type="color";
+                    }else{
+                        $type="text";
+                    }
+
+                    if ($campo === 'cargo' && $tabela === 'tb_usuario'){
+                        $type="select";
+                    }
+                ?>
+
+                <?php
+                    if ($type === 'select' && $campo === 'cargo' && $tabela === 'tb_usuario'){
+                        $options = ['Administrador', 'Usuário'];
+                ?>
+                        <div class="mb-3">
+                            <label for="<?= $campo ?>" class="form-label"><?= ucfirst($campo) ?></label>
+                            <select class="form-select" id="<?= $campo ?>" name="<?= $campo ?>" required>
+                                <?php foreach ($options as $option): ?>
+                                    <option value="<?= esc($option) ?>" <?= (isset($item[$campo]) && $item[$campo] === $option) ? 'selected' : '' ?>><?= esc($option) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                <?php
+                    }else{
+                ?>
                 <div class="mb-3">
                     <label for="<?= $campo ?>" class="form-label"><?= ucfirst($campo) ?></label>
                     <input 
-                        type="text" 
+                        type="<?= $type ?>" 
                         class="form-control" 
                         id="<?= $campo ?>" 
                         name="<?= $campo ?>" 
                         value="<?= $item[$campo] ?? '' ?>" 
                         placeholder="Digite <?= strtolower($campo) ?>"
                         required>
+
                 </div>
+                <?php
+                    }
+                ?>
+
             <?php endforeach; ?>
+
+            <?php if ( ! isset($item[getIdNameTabela($tabela)])): ?>
+            <?php
+            if($tabela == 'tb_usuario'){
+            ?>
+                <div class="form-group">
+                    <label for="senha">Nova Senha</label>
+                    <div class="input-group">
+                        <input 
+                        type="password" 
+                        class="form-control"
+                        id="senha" 
+                        name="senha"
+                        placeholder="Crie uma senha para o usuário"
+                        required>
+                        <div class="input-group-append">
+                            <span class="input-group-text toggle-password" data-target="#senha" style="cursor:pointer;">
+                                <i class="fa fa-eye-slash"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            <?php
+            }
+            ?>
+            <?php endif; ?>
 
             <div class="d-flex justify-content-end">
                 <button type="submit" class="btn btn-success">
@@ -65,7 +123,12 @@ if(isset($dados) && !empty($dados) && isset($camposVisiveis) && !empty($camposVi
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($dados as $linha): ?>
+            <?php 
+            foreach ($dados as $linha):
+            if($tabela == 'tb_usuario' && ($linha['id_usuario'] == 1) ) {
+                continue;
+            }
+            ?>
                 <tr>
                     <?php foreach ($camposVisiveis as $campo): ?>
                         <td><?= esc($linha[$campo]) ?></td>
@@ -75,9 +138,15 @@ if(isset($dados) && !empty($dados) && isset($camposVisiveis) && !empty($camposVi
                            class="btn btn-sm btn-outline-primary me-1">
                             <i class="fe fe-edit"></i> Editar
                         </a>
+                        <?php
+                        if($tabela == 'tb_usuario' && $linha['id_usuario'] == 2 ) {
+                        ?>
                         <a href="javascript:void(0);" data-tabela-excluir="<?=$tabela?>" data-id-excluir="<?=$linha[getIdNameTabela($tabela)]?>" data-url-excluir="<?=url_to('restrito.config.excluir')?>" data-mensagem-excluir="Confirma excluir este registro ?" class="btn btn-sm btn-outline-danger modalExcluir" >
                             <i class="fe fe-trash"></i> Excluir
                         </a>
+                        <?php
+                        }
+                        ?>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -96,5 +165,22 @@ if(isset($dados) && !empty($dados) && isset($camposVisiveis) && !empty($camposVi
 <?= $this->section('js') ?>
 <script>
     $('#tabelaDados').DataTable(); 
+
+    document.querySelectorAll('.toggle-password').forEach(function(toggle) {
+        toggle.addEventListener('click', function() {
+            const input = document.querySelector(this.getAttribute('data-target'));
+            const icon = this.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        });
+    });
 </script>
 <?= $this->endSection() ?>

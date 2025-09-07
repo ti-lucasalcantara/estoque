@@ -135,6 +135,9 @@
 							<span class="side-menu__label px-4 py-2">Saídas</span></a>
 						</li>
 
+                        <?php
+                            if(session('usuario_logado')['cargo'] == 'Administrador'):
+                        ?>
                         <li class="slide">
 							<a class="side-menu__item"  href="<?=url_to('restrito.relatorio.index')?>">
                             <i class="fa fa-bar-chart"></i>
@@ -146,6 +149,9 @@
                             <i class="fa fa-cogs"></i>
 							<span class="side-menu__label px-4 py-2">Configurações</span></a>
 						</li>
+                        <?php
+                          endif;
+                        ?>
 					</ul>
 				</aside>
 				<!--aside closed-->

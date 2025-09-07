@@ -18,12 +18,14 @@ class Config extends \App\Controllers\BaseController
     public function index()
     {
         $this->dados['configs'] = [
+            ['titulo' => 'Gerenciar cores', 'parametro' => 'ref_cor', 'rota' => 'restrito.config.crud' ],
+            ['titulo' => 'Gerenciar Usuários', 'parametro' => 'tb_usuario', 'rota' => 'restrito.config.crud' ],
+
             ['titulo' => 'Gerenciar categorias', 'parametro' => 'ref_categoria', 'rota' => 'restrito.config.crud' ],
             ['titulo' => 'Gerenciar Localizações', 'parametro' => 'ref_local', 'rota' => 'restrito.config.crud' ],
             
             ['titulo' => 'Gerenciar Motivo Entrada', 'parametro' => 'ref_motivo_entrada', 'rota' => 'restrito.config.crud' ],
             ['titulo' => 'Gerenciar Motivo Saída', 'parametro' => 'ref_motivo_saida', 'rota' => 'restrito.config.crud' ],
-            
         ];
 
         return view('restrito/config/index', $this->dados);
@@ -39,7 +41,7 @@ class Config extends \App\Controllers\BaseController
         $campos = $this->db->getFieldNames($tabela);
 
         $camposVisiveis = array_filter($campos, function($campo) {
-            $excluir = ['json', 'created_at', 'updated_at', 'deleted_at', 'user_created', 'user_updated', 'user_deleted'];
+            $excluir = ['json', 'created_at', 'updated_at', 'deleted_at', 'user_created', 'user_updated', 'user_deleted', 'senha', 'cpf', 'avatar', 'ativo'];
             return !in_array(strtolower($campo), $excluir);
         });
 
@@ -66,6 +68,10 @@ class Config extends \App\Controllers\BaseController
         $titulo = $post['titulo'];
         $tabela = $post['tabela'];
         $id     = $post['id'] ?? '';
+
+        if($post['tabela'] == 'tb_usuario' && $post['senha'] != ""){
+            $post['senha'] = password_hash($post['senha'], PASSWORD_DEFAULT);
+        }
 
         unset($post['titulo']);
         unset($post['tabela']);

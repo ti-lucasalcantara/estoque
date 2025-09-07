@@ -78,6 +78,44 @@
                                 </div>
                             </div>
 
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="id_cor" class="form-label">*Cores</label>
+                                    <div class="input-group">
+                                        <?php
+                                        if(isset($produto) && !empty($produto['id_produto'])){
+                                        ?>
+                                        <select class="form-select <?= empty(validation_show_error('id_cor')) ? '' : 'is-invalid' ?>" id="id_cor" name="id_cor">
+                                        <?php
+                                        }else{
+                                        ?>
+                                        <select class="form-select select2_cor <?= empty(validation_show_error('id_cor')) ? '' : 'is-invalid' ?>" id="id_cor" name="id_cor[]" multiple>
+                                        <?php
+                                        }
+                                        ?>
+                                        
+                                            <option value="">Selecione</option>
+                                            <?php
+                                            if(isset($ref_cor) && !empty($ref_cor)){
+                                                foreach ($ref_cor as $cor) {
+                                            ?>
+                                            <option value="<?=$cor['id_cor']?>||<?=$cor['hexadecimal']?>" data-cor="<?=$cor['hexadecimal']?>" <?= set_select('id_cor', $cor['id_cor'], (isset($produto['id_cor']) && $produto['id_cor'] == $cor['id_cor'] ? true : false) )?>><?=$cor['nome']?></option>
+                                            <?php
+                                                }
+                                            }
+                                            ?>
+                                            <!-- Outras opções -->
+                                        </select>
+                                        <!-- 
+                                        <button data-bs-toggle="modal" data-bs-target="#modalRefcor" type="button" class="btn btn-outline-secondary">
+                                            <i class="fa fa-cog"></i>
+                                        </button> 
+                                        -->
+                                    </div>
+                                    <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('id_categoria') ?></small>
+                                </div>
+                            </div>
+
                             <?php
                             if(isset($ref_caracteristica) && !empty($ref_caracteristica)){
                             ?>
@@ -102,8 +140,6 @@
                                             }
                                             ?>
                                         </select>
-
-                                        
                                     </div>
                                 </div>
                             <?php
@@ -206,7 +242,7 @@
 <?= $this->section('js') ?>
 <script>
 
-$('.select2_caracteristica').select2({
+$('.select2_cor').select2({
     placeholder: 'Selecione',
     templateResult: function (data) {
         if (!data.id) return data.text;
