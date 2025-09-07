@@ -130,6 +130,10 @@ class Produto extends \App\Controllers\BaseController
                     $produto['id_cor'] = $cor;
                 }
 
+                if($edit){
+                    $produto['id_cor'] = $this->request->getPost('id_cor');
+                }
+                
                 $id_produto = $this->cadastrarProduto($produto);
                 
                 $url_nova_imagem = null;
