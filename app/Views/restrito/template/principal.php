@@ -32,25 +32,22 @@ foreach ($secoes as [$rotulo, $icone, $rota, $prefixo]) {
     <link rel="stylesheet" href="/assets/plugins/datatables/datatables.min.css">
     <link rel="stylesheet" href="/assets/plugins/select2/select2.min.css">
     <?= $this->renderSection('css') ?>
-    <link rel="stylesheet" href="/assets/css/estoque.css">
+    <link rel="stylesheet" href="/assets/css/estoque.css?v=<?= filemtime(FCPATH . 'assets/css/estoque.css') ?>">
 </head>
 <body class="estoque-app">
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
     <header class="workspace-header">
         <div class="workspace-header-inner">
             <div class="workspace-brand workspace-brand-desktop">
-                <a class="brand" href="<?= url_to('restrito.dashboard.index') ?>">
+                <a class="brand d-none d-lg-block" href="<?= url_to('restrito.dashboard.index') ?>">
                     <?= $this->include('_componentes/marca-carvalho') ?>
                 </a>
                 <button class="btn btn-outline-primary workspace-menu-toggle" id="alternar-menu" type="button"
-                    aria-controls="menuEstoque" aria-expanded="true" aria-label="Recolher menu lateral" title="Recolher menu lateral">
+                    aria-controls="menuEstoque" aria-expanded="false" aria-label="Abrir menu lateral" title="Abrir menu lateral">
                     <i class="fa fa-bars" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="workspace-location">
-                <button class="btn btn-outline-primary d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuEstoque" aria-controls="menuEstoque" aria-label="Abrir menu">
-                    <i class="fa fa-bars" aria-hidden="true"></i>
-                </button>
                 <span><?= esc($secaoAtual) ?></span>
             </div>
             <div class="dropdown">
@@ -104,31 +101,57 @@ foreach ($secoes as [$rotulo, $icone, $rota, $prefixo]) {
         <script>
             const menuDesktop = window.matchMedia('(min-width: 992px)');
             const alternarMenu = document.getElementById('alternar-menu');
+            const painelMenu = document.getElementById('menuEstoque');
             const chaveMenu = 'estoque.menuLateralOculto';
+            let menuRecolhido = false;
 
-            function ajustarMenuLateral(oculto) {
-                document.body.classList.toggle('workspace-menu-hidden', oculto);
-                alternarMenu.setAttribute('aria-expanded', String(!oculto));
-                const rotulo = oculto ? 'Expandir menu lateral' : 'Recolher menu lateral';
+            function atualizarBotaoMenu() {
+                const aberto = menuDesktop.matches
+                    ? !menuRecolhido
+                    : painelMenu.classList.contains('show');
+                alternarMenu.setAttribute('aria-expanded', String(aberto));
+                const rotulo = menuDesktop.matches
+                    ? (aberto ? 'Recolher menu lateral' : 'Expandir menu lateral')
+                    : (aberto ? 'Fechar menu lateral' : 'Abrir menu lateral');
                 alternarMenu.setAttribute('aria-label', rotulo);
                 alternarMenu.title = rotulo;
             }
 
             try {
-                ajustarMenuLateral(localStorage.getItem(chaveMenu) === 'true');
+                menuRecolhido = localStorage.getItem(chaveMenu) === 'true';
             } catch {}
+            document.body.classList.toggle('workspace-menu-hidden', menuRecolhido);
+            atualizarBotaoMenu();
 
             alternarMenu.addEventListener('click', () => {
-                const oculto = alternarMenu.getAttribute('aria-expanded') === 'true';
-                ajustarMenuLateral(oculto);
+                if (!menuDesktop.matches) {
+                    bootstrap.Offcanvas.getOrCreateInstance(painelMenu).toggle(alternarMenu);
+                    return;
+                }
+
+                menuRecolhido = !menuRecolhido;
+                document.body.classList.toggle('workspace-menu-hidden', menuRecolhido);
+                atualizarBotaoMenu();
                 try {
-                    localStorage.setItem(chaveMenu, String(oculto));
+                    localStorage.setItem(chaveMenu, String(menuRecolhido));
                 } catch {}
             });
 
-            menuDesktop.addEventListener('change', ({matches}) => {
-                if (matches) bootstrap.Offcanvas.getInstance(document.getElementById('menuEstoque'))?.hide();
+            painelMenu.addEventListener('shown.bs.offcanvas', atualizarBotaoMenu);
+            painelMenu.addEventListener('hidden.bs.offcanvas', () => {
+                atualizarBotaoMenu();
+                if (!menuDesktop.matches) alternarMenu.focus();
             });
+            function atualizarModoMenu() {
+                const painel = bootstrap.Offcanvas.getInstance(painelMenu);
+                if (menuDesktop.matches && painel) painel.hide();
+                atualizarBotaoMenu();
+            }
+            if (menuDesktop.addEventListener) {
+                menuDesktop.addEventListener('change', atualizarModoMenu);
+            } else {
+                menuDesktop.addListener(atualizarModoMenu);
+            }
 
             $.extend(true, $.fn.dataTable.defaults, {
                 language: {

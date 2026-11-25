@@ -1,4 +1,4 @@
-<svg class="carvalho-wordmark" viewBox="0 0 430 150" role="img" aria-label="Móveis Carvalho">
+<svg class="carvalho-wordmark" width="430" height="150" viewBox="0 0 430 150" role="img" aria-label="Móveis Carvalho">
     <g aria-hidden="true">
         <circle class="carvalho-dot carvalho-dot-red" cx="13" cy="38" r="12" />
         <circle class="carvalho-dot carvalho-dot-gray" cx="53" cy="38" r="12" />

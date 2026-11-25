@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/assets/plugins/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/iconfonts/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="/assets/plugins/toast/css/jquery.growl.css">
-    <link rel="stylesheet" href="/assets/css/estoque.css">
+    <link rel="stylesheet" href="/assets/css/estoque.css?v=<?= filemtime(FCPATH . 'assets/css/estoque.css') ?>">
 </head>
 <body class="estoque-login">
     <main class="login-layout">
