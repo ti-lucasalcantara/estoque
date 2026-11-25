@@ -23,6 +23,7 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
         $routes->get('form', 'Produto::formulario', ['as' => 'restrito.produto.formulario']);
         $routes->get('editar/(:any)', 'Produto::formulario/$1', ['as' => 'restrito.produto.editar']);
         $routes->post('salvar', 'Produto::salvar', ['as' => 'restrito.produto.salvar']);
+        $routes->post('capa', 'Produto::definirCapa', ['as' => 'restrito.produto.capa', 'filter' => 'csrf']);
         $routes->post('excluir', 'Produto::excluir', ['as' => 'restrito.produto.excluir']);
 
         // Entradas    
@@ -80,8 +81,13 @@ $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static f
         $routes->get('crud/(:any)/(:any)', 'Config::crud/$1/$2', ['as' => 'restrito.config.crud']);
         $routes->get('crud/(:any)/(:any)/(:any)', 'Config::crud/$1/$2/$3', ['as' => 'restrito.config.edit']);
         
-        $routes->post('salvar', 'Config::salvar', ['as' => 'restrito.config.salvar']);
-        $routes->post('excluir', 'Config::excluir', ['as' => 'restrito.config.excluir']);
+        $routes->post('salvar', 'Config::salvar', ['as' => 'restrito.config.salvar', 'filter' => 'csrf']);
+        $routes->post('excluir', 'Config::excluir', ['as' => 'restrito.config.excluir', 'filter' => 'csrf']);
+        $routes->post('usuarios/senha', 'Config::alterarSenhaUsuario', ['as' => 'restrito.config.usuario.senha', 'filter' => 'csrf']);
+        $routes->post('usuarios/restaurar', 'Config::restaurarUsuario', ['as' => 'restrito.config.usuario.restaurar', 'filter' => 'csrf']);
+        $routes->post('usuarios/excluir-definitivamente', 'Config::excluirUsuarioDefinitivamente', ['as' => 'restrito.config.usuario.excluirDefinitivamente', 'filter' => 'csrf']);
+        $routes->get('correcoes', 'Config::correcoes', ['as' => 'restrito.config.correcoes']);
+        $routes->post('correcoes', 'Config::salvarCorrecoes', ['as' => 'restrito.config.salvarCorrecoes', 'filter' => 'csrf']);
 
     });
 

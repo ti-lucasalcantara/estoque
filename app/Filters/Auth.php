@@ -2,6 +2,8 @@
 
 namespace App\Filters;
 
+use App\Libraries\PermissoesEstoque;
+use App\Models\TbUsuario;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -30,11 +32,48 @@ class Auth implements FilterInterface
             session()->setFlashdata( getMessageFail('toast', ['title' => 'Acesso negado!', 'text' => 'Entre com seu usuário e senha']) );
             return redirect()->route('login');
         }
-        if($usuario_logado['ativo'] == 0){
+        $usuario = (new TbUsuario())->find($usuario_logado['id_usuario']);
+        if (!$usuario || !$usuario['ativo']) {
+            session()->remove('usuario_logado');
             session()->setFlashdata( getMessageFail('toast', ['title' => 'Acesso negado!', 'text' => 'Usuário sem acesso para acessar o sistema']) );
             return redirect()->route('login');
         }
-        return true;
+        session()->set('usuario_logado', array_replace($usuario_logado, array_intersect_key(
+            $usuario, array_flip(['nome', 'email', 'cargo', 'ativo', 'permissoes'])
+        )));
+
+        $router = service('router');
+        $controller = $router->controllerName();
+        if (!is_string($controller) || !str_starts_with(ltrim($controller, '\\'), 'App\\Controllers\\Restrito\\')) {
+            return null;
+        }
+
+        $modulo = strtolower(substr($controller, strrpos($controller, '\\') + 1));
+        $metodo = $router->methodName();
+        $permissao = match ($modulo) {
+            'dashboard', 'relatorio' => $modulo . '.ver',
+            'refcategoria' => 'config.ref_categoria.editar',
+            'produto', 'entrada', 'saida' => $modulo . '.' . match ($metodo) {
+                'index' => 'ver',
+                'excluir' => 'excluir',
+                'definirCapa' => 'editar',
+                'formulario' => isset($router->params()[$modulo === 'produto' ? 0 : 1]) ? 'editar' : 'criar',
+                'salvar' => $request->getPost('id_produto' . ($modulo === 'produto' ? '' : '_' . $modulo)) ? 'editar' : 'criar',
+                default => 'criar',
+            },
+            default => null,
+        };
+
+        if ($permissao === null || PermissoesEstoque::tem($permissao)) {
+            return null;
+        }
+        if ($modulo === 'dashboard') {
+            return redirect()->route(PermissoesEstoque::destinoInicial());
+        }
+        if ($request->isAJAX()) {
+            return service('response')->setStatusCode(403)->setJSON(['text' => 'Seu usuário não tem permissão para esta ação.']);
+        }
+        return service('response')->setStatusCode(403)->setBody(view('errors/html/error_403'));
     }
 
     /**

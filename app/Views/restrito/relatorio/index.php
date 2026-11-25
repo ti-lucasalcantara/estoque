@@ -1,53 +1,21 @@
 <?= $this->extend('restrito/template/principal') ?>
-
 <?= $this->section('conteudo') ?>
-<!-- Page header -->
-<div class="page-header">
-    <div class="page-leftheader">
-        <h4 class="page-title mb-0 text-primary">Relatórios do Sistema</h4>
+<header class="page-header">
+    <div>
+        <h1 class="page-title mb-0">Relatórios</h1>
+        <p class="page-description">Acompanhe o saldo, a reposição e o giro dos produtos.</p>
     </div>
+</header>
+<div class="reports-grid">
+    <?php foreach ($relatorios as $item): ?>
+        <a class="card hub-card report-link" href="<?= url_to($item['rota']) ?>">
+            <span class="hub-icon"><i class="fa fa-<?= esc($item['icone'], 'attr') ?>" aria-hidden="true"></i></span>
+            <span>
+                <strong class="d-block"><?= esc($item['titulo']) ?></strong>
+                <small class="text-muted d-block mt-1"><?= esc($item['descricao']) ?></small>
+            </span>
+            <i class="fa fa-chevron-right" aria-hidden="true"></i>
+        </a>
+    <?php endforeach ?>
 </div>
-<!-- End Page header -->
-
-<!-- Row -->
-<div class="row">
-    <?php
-    
-    ?>
-
-    <?php 
-    if(isset($relatorios) && !empty($relatorios)):
-        foreach ($relatorios as $rel):
-            $url = '#';
-            if( route_to($rel['rota']) ){
-                $url = url_to($rel['rota']);
-            }
-    ?>
-            <div class="col-md-6">
-                <a href='<?=$url?>' class="card card-hover" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <h5 class="card-title"><?= esc($rel['titulo']) ?></h5>
-                        <p class="text-muted">Clique para visualizar</p>
-                    </div>
-                </a>
-            </div>
-    <?php 
-        endforeach;
-    endif;
-    ?>
-</div>
-<!-- End Row -->
-<?= $this->endSection() ?>
-
-<?= $this->section('css') ?>
-<style>
-    .card-hover:hover {
-        background-color: #f0f0f0;
-        transition: 0.3s ease;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-</style>
-<?= $this->endSection() ?>
-
-<?= $this->section('js') ?>
 <?= $this->endSection() ?>

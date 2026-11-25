@@ -1,167 +1,62 @@
-<?php
-use App\Models\RefCategoria;
-use App\Models\TbProduto;
+<header class="page-header">
+    <div>
+        <h1 class="page-title mb-0"><?= esc($titulo) ?></h1>
+        <p class="page-description"><?= esc($descricao) ?></p>
+    </div>
+    <a class="btn btn-outline-primary" href="<?= url_to('restrito.relatorio.index') ?>"><i class="fa fa-arrow-left me-2" aria-hidden="true"></i>Voltar aos relatórios</a>
+</header>
 
-$RefCategoria = (new RefCategoria())->orderBy('categoria', 'ASC')->findAll();
-
-$TbProduto = (new TbProduto())
-    ->select('tb_produto.*, ref_categoria.categoria, fn_saldo_estoque(tb_produto.id_produto) AS saldoEstoque')
-    ->join('ref_categoria', 'ref_categoria.id_categoria = tb_produto.id_categoria')
-    ->orderBy('saldoEstoque', 'DESC')
-    ->findAll();
-
-foreach ($TbProduto as $key => $produto) {
-    $TbProduto[$key]['cor_nome'] = getNomeCorProduto($produto);
-    $TbProduto[$key]['cor_hexa'] = getHexaCorProduto($produto);
-}
-
-$categoriasSelecionadas = $_GET['ref_categoria'] ?? [];
-$produtosSelecionados = $_GET['tb_produtos'] ?? [];
-?>
-
-<!-- Categorias -->
-<div class="col-md-12">
-    <label for="ref_categoria" class="form-label">Categoria(s)</label>
-    <select name="ref_categoria[]" id="ref_categoria" class="form-control" multiple required>
-        <option value="__all__" <?= in_array('__all__', $categoriasSelecionadas) ? 'selected' : '' ?>>Todos</option>
-        <?php foreach ($RefCategoria as $categoria): ?>
-            <option value="<?= $categoria['id_categoria'] ?>"
-                <?= in_array($categoria['id_categoria'], $categoriasSelecionadas) ? 'selected' : '' ?>>
-                <?= esc($categoria['categoria']) ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
-</div>
-
-<!-- Produtos -->
-<div class="col-md-12">
-    <label for="tb_produtos" class="form-label">Produto(s)</label>
-    <select name="tb_produtos[]" id="tb_produtos" class="form-control" multiple required>
-        <option value="__all__" <?= in_array('__all__', $produtosSelecionados) ? 'selected' : '' ?>>Todos</option>
-    </select>
-</div>
-
-<?= $this->section('js') ?>
-<script>
-const produtosData = <?= json_encode($TbProduto) ?>;
-const produtosSelecionados = <?= json_encode($produtosSelecionados) ?>;
-const categoriasSelecionadas = <?= json_encode($categoriasSelecionadas) ?>;
-
-// Inicializa Select2: categorias simples, produtos com template
-$('#ref_categoria').select2({
-    width: '100%',
-    placeholder: 'Selecione uma ou mais opções'
-});
-
-$('#tb_produtos').select2({
-    width: '100%',
-    placeholder: 'Selecione uma ou mais opções',
-    templateResult: formatSelectOption,
-    templateSelection: formatSelectSelection
-});
-
-// Formatação visual no Select2 (produtos: lista de opções)
-function formatSelectOption(data) {
-    if (!data.id) return data.text;
-    const $option = $(data.element);
-    const nome = $option.data('nome') || data.text;
-    const codigo = $option.data('codigo') || '';
-    const cor = $option.data('cor') || '';
-    const hexa = $option.data('hexa') || '';
-
-    if (!hexa) return nome;
-
-    return $(`
-        <span>
-            <span style="display:inline-block;width:15px;height:15px;background-color:${hexa};margin-right:5px;border:1px solid #000;border-radius:3px;"></span>
-            ${nome} (${codigo}) - ${cor}
-        </span>
-    `);
-}
-
-// Formatação visual no Select2 (produtos: seleção ativa)
-function formatSelectSelection(data) {
-    if (!data.id) return data.text;
-    const $option = $(data.element);
-    const nome = $option.data('nome') || data.text;
-    const codigo = $option.data('codigo') || '';
-    const cor = $option.data('cor') || '';
-
-    return `${nome} (${codigo}) - ${cor}`;
-}
-
-// Expandir "__all__" para todos
-function expandirSelectAll($select) {
-    const todosIds = $select.find('option').map(function () {
-        const val = $(this).val();
-        return val !== '__all__' ? val : null;
-    }).get();
-    $select.val(todosIds).trigger('change');
-}
-
-// Seleção de categorias e produtos
-$('#ref_categoria').on('select2:select', function (e) {
-    if (e.params.data.id === '__all__') expandirSelectAll($('#ref_categoria'));
-});
-$('#tb_produtos').on('select2:select', function (e) {
-    if (e.params.data.id === '__all__') expandirSelectAll($('#tb_produtos'));
-});
-
-// Carregar produtos com base nas categorias selecionadas
-function carregarProdutosPorCategoria() {
-    const $produtos = $('#tb_produtos');
-    const categorias = $('#ref_categoria').val() || [];
-
-    $produtos.empty().append('<option value="__all__">Todos</option>');
-
-    if (categorias.length === 0) {
-        $produtos.val(null).trigger('change');
-        return;
-    }
-
-    if (categorias.includes('__all__')) {
-        produtosData.forEach(prod => {
-            const isSelecionado = produtosSelecionados.includes(prod.id_produto.toString());
-            $produtos.append(new Option(prod.nome, prod.id_produto, false, isSelecionado))
-                .find(`option[value="${prod.id_produto}"]`)
-                .attr('data-nome', prod.nome)
-                .attr('data-codigo', prod.codigo)
-                .attr('data-cor', prod.cor_nome)
-                .attr('data-hexa', prod.cor_hexa);
-        });
-        $produtos.trigger('change');
-        return;
-    }
-
-    const selecionadosValidos = [];
-    produtosData.forEach(prod => {
-        if (categorias.includes(prod.id_categoria.toString())) {
-            const isSelecionado = produtosSelecionados.includes(prod.id_produto.toString());
-            $produtos.append(new Option(prod.nome, prod.id_produto, false, isSelecionado))
-                .find(`option[value="${prod.id_produto}"]`)
-                .attr('data-nome', prod.nome)
-                .attr('data-codigo', prod.codigo)
-                .attr('data-cor', prod.cor_nome)
-                .attr('data-hexa', prod.cor_hexa);
-            if (isSelecionado) selecionadosValidos.push(prod.id_produto.toString());
-        }
-    });
-
-    $produtos.val(selecionadosValidos).trigger('change');
-}
-
-// Evento: ao alterar categorias
-$('#ref_categoria').on('change', function () {
-    carregarProdutosPorCategoria();
-});
-
-// Ao carregar a página
-$(document).ready(function () {
-    produtosData.forEach(p => {
-        p.cor_nome = p.cor_nome || '-';
-        p.cor_hexa = p.cor_hexa || '#cccccc';
-    });
-    carregarProdutosPorCategoria();
-});
-</script>
-<?= $this->endSection() ?>
+<section class="card" aria-labelledby="titulo-filtros-relatorio">
+    <div class="card-header"><h2 class="card-title" id="titulo-filtros-relatorio">Filtros do relatório</h2></div>
+    <form method="get" action="<?= url_to($rotaConsulta) ?>" id="form-relatorio">
+        <div class="card-body">
+            <p class="text-muted small mb-3">Deixe categorias e produtos em branco para consultar todos.</p>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="ref_categoria">Categorias</label>
+                    <select name="ref_categoria[]" id="ref_categoria" class="form-select" multiple>
+                        <?php foreach ($categoriasDisponiveis as $categoria): ?>
+                            <?php $id = (int) $categoria['id_categoria']; ?>
+                            <option value="<?= $id ?>"<?= in_array($id, $filtros['categorias'], true) ? ' selected' : '' ?>><?= esc($categoria['categoria']) ?></option>
+                        <?php endforeach ?>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="tb_produtos">Produtos</label>
+                    <select name="tb_produtos[]" id="tb_produtos" class="form-select" multiple>
+                        <?php foreach ($produtosDisponiveis as $opcao): ?>
+                            <?php $id = (int) $opcao['id_produto']; ?>
+                            <option value="<?= $id ?>" data-categoria="<?= (int) $opcao['id_categoria'] ?>"
+                                data-cor="<?= esc($opcao['cor_hex'] ?? '', 'attr') ?>"<?= in_array($id, $filtros['produtos'], true) ? ' selected' : '' ?>>
+                                <?= esc($opcao['nome'] . ' · ' . $opcao['codigo'] . ($opcao['cor_nome'] ? ' · ' . $opcao['cor_nome'] : '')) ?>
+                            </option>
+                        <?php endforeach ?>
+                    </select>
+                </div>
+                <?php if ($comPeriodo): ?>
+                    <div class="col-md-4">
+                        <label class="form-label" for="tipo_periodo">Período</label>
+                        <select id="tipo_periodo" name="tipo_periodo" class="form-select">
+                            <option value="especifico"<?= !$todo ? ' selected' : '' ?>>Intervalo de datas</option>
+                            <option value="todo"<?= $todo ? ' selected' : '' ?>>Todo o histórico</option>
+                        </select>
+                    </div>
+                    <?php foreach (['data_inicio' => ['Data inicial', $inicio, date('Y-m-01')], 'data_fim' => ['Data final', $fim, date('Y-m-d')]] as $campo => [$rotulo, $valor, $padrao]): ?>
+                        <div class="col-sm-6 col-md-4" data-datas-relatorio<?= $todo ? ' hidden' : '' ?>>
+                            <label class="form-label" for="<?= $campo ?>"><?= $rotulo ?></label>
+                            <input id="<?= $campo ?>" name="<?= $campo ?>" type="date" class="form-control" max="<?= date('Y-m-d') ?>"
+                                value="<?= esc(is_string($valor) ? $valor : $padrao, 'attr') ?>"<?= $todo ? ' disabled' : ' required' ?>>
+                        </div>
+                    <?php endforeach ?>
+                <?php endif ?>
+            </div>
+            <?php if (!$periodoValido): ?>
+                <p class="text-danger small mb-0 mt-3" role="alert">Informe duas datas válidas, com a data final igual ou posterior à inicial e até hoje.</p>
+            <?php endif ?>
+        </div>
+        <div class="card-footer d-flex flex-wrap justify-content-end gap-2">
+            <a href="<?= url_to($rotaConsulta) ?>" class="btn btn-outline-primary">Limpar filtros</a>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-filter me-2" aria-hidden="true"></i>Aplicar filtros</button>
+        </div>
+    </form>
+</section>

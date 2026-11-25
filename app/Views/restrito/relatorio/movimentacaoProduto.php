@@ -1,179 +1,73 @@
 <?= $this->extend('restrito/template/principal') ?>
-
 <?= $this->section('conteudo') ?>
-<!-- Page header -->
-<div class="page-header">
-    <div class="page-leftheader">
-        <h4 class="page-title mb-0 text-primary">Relatório: Movimentação de Produtos</h4>
-    </div>
-    <div class="page-rightheader">
-        <div class="btn-list">
-            <a href="<?=url_to('restrito.relatorio.index')?>" class="btn btn-outline-primary">
-                <i class="fe fe-chevron-left me-2"></i>
-                Voltar
-            </a>
-        </div>
-    </div>
-</div>
-<!-- End Page header -->
-
-<!-- Filtros -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-            <form id="formRelatorio" method="GET" action="<?=url_to('restrito.relatorio.movimentacaoProduto')?>">
-                <div class="row g-3">
-
-                    <?= $this->include('_componentes/form/ref_categoria_tb_produtos');?>
-
-                    <!-- Tipo de período -->
-                    <div class="col-md-3">
-                        <label for="tipo_periodo" class="form-label">Período</label>
-                        <select id="tipo_periodo" name="tipo_periodo" class="form-control" required>
-                            <option value="todo" <?= set_select('tipo_periodo', 'todo', old('tipo_periodo', $_GET['tipo_periodo'] ?? 'todo') === 'todo') ?>>
-                                Todo o período
-                            </option>
-                            <option value="especifico" <?= set_select('tipo_periodo', 'especifico', old('tipo_periodo', $_GET['tipo_periodo'] ?? '') === 'especifico') ?>>
-                                Período específico
-                            </option>
-                        </select>
-                    </div>
-
-                    <!-- Datas (escondidas por padrão) -->
-                    <div class="col-md-3 div-datas" style="display: none;">
-                        <label for="data_inicio" class="form-label">Data Início</label>
-                        <input type="date" name="data_inicio" id="data_inicio" class="form-control"
-                            value="<?= set_value('data_inicio', $_GET['data_inicio'] ?? '') ?>" max="<?=date('Y-m-d')?>">
-                    </div>
-
-                    <div class="col-md-3 div-datas" style="display: none;">
-                        <label for="data_fim" class="form-label">Data Fim</label>
-                        <input type="date" name="data_fim" id="data_fim" class="form-control"
-                            value="<?= set_value('data_fim', $_GET['data_fim'] ?? '') ?>" max="<?=date('Y-m-d')?>">
-                    </div>
-
-                    <!-- Botão -->
-                    <div class="col-md-12 text-end">
-                        <button type="submit" id="sendFormRelatorio" class="btn btn-primary mt-3">
-                            <i class="fe fe-search me-2"></i> buscar
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Resultado: Tabela de movimentações -->
-<div class="row">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-
-                <?php if (isset($produtos) && !empty($produtos)) : ?>
-                    <?php foreach ($produtos as $produto) : ?>
-                        <h5>
-                            <span style="display:inline-block;width:15px;height:15px;background-color:<?=getHexaCorProduto($produto)?>;margin-right:5px;border:1px solid #000;border-radius:3px;"></span>
-                            <?= esc($produto['codigo']) ?> | <?= esc($produto['nome']) ?> 
-                            <small>(<?=getNomeCorProduto($produto)?>)</small>
-                            <br>
-                            <small class="text-muted">(<?= esc($produto['categoria']) ?>)</small>
-                        </h5>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover table-striped align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Data</th>
-                                        <th>Tipo</th>
-                                        <th>Quantidade</th>
-                                        <th>Usuário</th>
-                                        <th>Saldo após</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $saldo = 0;
-                                    $contador = 1;
-                                    foreach ($movimentos as $movimento) :
-                                        if ($movimento['id_produto'] != $produto['id_produto']) continue;
-
-                                        // Atualiza saldo
-                                        if ($movimento['tipo'] === 'entrada') {
-                                            $saldo += $movimento['quantidade'];
-                                            $badge = '<span class="badge bg-success">' . esc($movimento['motivo']) . '</span>';
-                                        } else {
-                                            $saldo -= $movimento['quantidade'];
-                                            $badge = '<span class="badge bg-danger">' . esc($movimento['motivo']) . '</span>';
-                                        }
-                                    ?>
-                                        <tr>
-                                            <td><?= $contador++ ?></td>
-                                            <td><?= date('d/m/Y', strtotime($movimento['data'])) ?></td>
-                                            <td><?= $badge ?></td>
-                                            <td><?= esc($movimento['quantidade']) ?></td>
-                                            <td><?= esc($movimento['usuario']) ?></td>
-                                            <td><?= $saldo ?></td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                                <tfoot>
-                                    <tr class="table-info">
-                                        <td colspan="5" class="text-end"><strong>Saldo</strong></td>
-                                        <td><strong><?= $saldo ?></strong></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else : ?>
-                    <p>- Nenhum produto encontrado -</p>
-                <?php endif; ?>
-
-            </div>
-        </div>
-    </div>
-</div>
-<?= $this->endSection() ?>
-
-<?= $this->section('css') ?>
-<?= $this->endSection() ?>
-
-<?= $this->section('js') ?>
-<script>
-    $(document).ready(function() {
-    
-        $('#tipo_periodo').on('change', function () {
-            const isEspecifico = $(this).val() === 'especifico';
-            $('.div-datas').toggle(isEspecifico);
-            $('#data_inicio, #data_fim').prop('required', isEspecifico);
-        });
-
-        // Inicializa o estado correto ao carregar a página
-        $('#tipo_periodo').trigger('change');
-
-        function validarIntervaloDatas() {
-            const inicio = $('#data_inicio').val();
-            const fim = $('#data_fim').val();
-
-            if (inicio && fim && fim < inicio) {
-                alert('A data final não pode ser menor que a data inicial.');
-                $('#data_fim').addClass('is-invalid').val('').focus();
-            }
+<?= $this->include('_componentes/form/ref_categoria_tb_produtos') ?>
+<?php
+$numero = static fn ($valor) => number_format((int) $valor, 0, ',', '.');
+$totais = ['entrada' => 0, 'saida' => 0];
+foreach ($movimentos as $linhas) {
+    foreach ($linhas as $linha) {
+        $totais[$linha['tipo']] += (int) $linha['quantidade'];
+    }
+}
+?>
+<?php if ($periodoValido && $produtos): ?>
+    <dl class="report-metrics mb-3">
+        <?php foreach (['Produtos consultados' => count($produtos), 'Unidades recebidas' => $totais['entrada'], 'Unidades retiradas' => $totais['saida'], 'Variação do saldo' => $totais['entrada'] - $totais['saida']] as $rotulo => $valor): ?>
+            <div class="card metric"><dt><?= esc($rotulo) ?></dt><dd><?= $numero($valor) ?></dd></div>
+        <?php endforeach ?>
+    </dl>
+    <p class="text-muted small mb-3"><?= $todo ? 'Todo o histórico' : esc(dataPTBR($inicio) . ' a ' . dataPTBR($fim)) ?></p>
+    <?php foreach ($produtos as $posicao => $produto): ?>
+        <?php
+        $id = $produto['id_produto'];
+        $linhas = $movimentos[$id] ?? [];
+        $saldoInicial = $saldosIniciais[$id] ?? 0;
+        $saldo = $saldoInicial;
+        foreach ($linhas as &$linha) {
+            $saldo += ($linha['tipo'] === 'entrada' ? 1 : -1) * (int) $linha['quantidade'];
+            $linha['saldoApos'] = $saldo;
         }
-
-        $('#data_fim').on('change', validarIntervaloDatas);
-
-
-
-        $("#formRelatorio").submit(function(e){
-            
-            $("#sendFormRelatorio").loading();
-        });
-        
-    });
-</script>
+        unset($linha);
+        ?>
+        <details class="card report-detail"<?= $posicao === 0 ? ' open' : '' ?>>
+            <summary class="card-header">
+                <span><strong><?= esc($produto['nome']) ?></strong>
+                    <small class="text-muted d-block"><?= esc($produto['codigo'] . ' · ' . $produto['categoria'] . ($produto['cor_nome'] ? ' · ' . $produto['cor_nome'] : '')) ?></small>
+                </span>
+                <span class="text-muted small">Saldo final: <strong><?= $numero($saldo) ?> un.</strong></span>
+            </summary>
+            <div class="card-body py-2">
+                <p class="mb-0 small text-muted">Saldo no início do período: <strong><?= $numero($saldoInicial) ?> un.</strong></p>
+            </div>
+            <?php if ($linhas): ?>
+                <div class="table-responsive" tabindex="0" role="region" aria-label="<?= esc('Movimentações de ' . $produto['nome'], 'attr') ?>">
+                    <table class="table report-table">
+                        <thead><tr><th scope="col">Data</th><th scope="col">Tipo e motivo</th><th scope="col">Responsável</th><th scope="col" class="text-end">Quantidade</th><th scope="col" class="text-end">Saldo após</th></tr></thead>
+                        <tbody>
+                            <?php foreach (array_reverse($linhas) as $movimento): ?>
+                                <?php $entrada = $movimento['tipo'] === 'entrada'; ?>
+                                <tr>
+                                    <td data-coluna="Data"><?= esc(dataPTBR(substr($movimento['data'], 0, 10))) ?></td>
+                                    <td data-coluna="Tipo e motivo"><strong><?= $entrada ? 'Entrada' : 'Saída' ?></strong> · <?= esc($movimento['motivo'] ?? 'Motivo não informado') ?>
+                                        <?php if (!empty($movimento['observacoes'])): ?><small class="d-block text-muted"><?= esc($movimento['observacoes']) ?></small><?php endif ?>
+                                    </td>
+                                    <td data-coluna="Responsável"><?= esc($movimento['usuario'] ?? '—') ?></td>
+                                    <td data-coluna="Quantidade" class="text-end <?= $entrada ? 'text-success' : 'text-danger' ?>"><?= $entrada ? '+' : '−' ?><?= $numero($movimento['quantidade']) ?> un.</td>
+                                    <td data-coluna="Saldo após" class="text-end fw-bold"><?= $numero($movimento['saldoApos']) ?> un.</td>
+                                </tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <p class="card-body text-muted mb-0">Nenhuma movimentação neste período.</p>
+            <?php endif ?>
+        </details>
+    <?php endforeach ?>
+<?php elseif ($periodoValido): ?>
+    <p class="empty-state">Nenhum produto encontrado para os filtros aplicados.</p>
+<?php endif ?>
+<?= $this->endSection() ?>
+<?= $this->section('js') ?>
+<script src="/assets/js/estoque-relatorios.js"></script>
 <?= $this->endSection() ?>

@@ -1,62 +1,49 @@
 <script>
-    $(".modalExcluir").click(function(e){
-        e.preventDefault();
-       
-        var id      = $(this).data('id-excluir');
-        var tabela  = $(this).data('tabela-excluir') ?? '';
-        var url     = $(this).data('url-excluir');
-        var text    = $(this).data('mensagem-excluir');
-
+    $(document).on('click', '.modalExcluir', function (evento) {
+        evento.preventDefault();
+        const {idExcluir, tabelaExcluir, urlExcluir, mensagemExcluir, tituloExcluir, confirmarExcluir, csrfNome, csrfValor} = this.dataset;
         Swal.fire({
-            title: "Confirma exclusão?",
-            html:  `${text ?? ''}<br>Essa operação não poderá ser desfeita.`,
-            icon: "warning",
+            title: tituloExcluir || 'Excluir registro?',
+            text: mensagemExcluir || 'Confirme a exclusão deste registro.',
+            icon: 'warning',
             showCancelButton: true,
-            cancelButtonColor: "#828282",
-            cancelButtonText: "Cancelar",
-            confirmButtonColor: "#d33",
-            confirmButtonText: "Excluir",
-            preConfirm: async (login) => {
+            focusCancel: true,
+            cancelButtonText: 'Cancelar',
+            confirmButtonText: confirmarExcluir || 'Excluir',
+            confirmButtonColor: '#a71c32',
+            showLoaderOnConfirm: true,
+            allowOutsideClick: () => !Swal.isLoading(),
+            preConfirm: async () => {
+                const dados = new FormData();
+                dados.append('id', idExcluir);
+                dados.append('tabela', tabelaExcluir || '');
+                if (csrfNome) dados.append(csrfNome, csrfValor);
                 try {
-                    var fd = new FormData();
-                    fd.append('id', id);
-                    fd.append('tabela', tabela);
-                    
-                    const resultAjax = await $.ajax({
-                        type: "POST",
+                    const resultado = await $.ajax({
+                        url: urlExcluir,
                         method: 'POST',
-                        url: url,
-                        data: fd,
-                        dataType: 'html',
-                        enctype:"multipart/form-data",
+                        data: dados,
+                        dataType: 'json',
                         contentType: false,
-                        processData: false,
-                        beforeSend: function(){
-                            // loading btn
-                        },
+                        processData: false
                     });
-                    return JSON.parse(resultAjax);
-
-                } catch (error) {
-                    /*  console.log('error', error);  */
-                    Swal.showValidationMessage(`Falha na requisição:  ${error.responseText ??  error}`);
-                }
-            },
-            allowOutsideClick: () => !Swal.isLoading()
-        }).then((result) => {
-            if (result.isConfirmed) {
-                console.log(result);
-                Swal.fire({
-                    title: `${result.value.title ?? 'Erro inesperado' }`,
-                    text: `${result.value.message ?? '' }`,
-                    icon: `${result.value.type ?? '' }`,
-                }).then( (result) => {
-                    if (result.isConfirmed) {
-                        window.location.reload();
+                    if (resultado.type !== 'success') {
+                        Swal.showValidationMessage('Não foi possível excluir o registro.');
+                        return false;
                     }
-                });
+                    return resultado;
+                } catch (erro) {
+                    const mensagem = erro.responseJSON?.text || 'Não foi possível excluir o registro. Tente novamente.';
+                    const texto = document.createElement('span');
+                    texto.textContent = mensagem;
+                    Swal.showValidationMessage(texto.innerHTML);
+                    return false;
+                }
             }
+        }).then(async ({isConfirmed, value}) => {
+            if (!isConfirmed) return;
+            await Swal.fire({title: value.title || 'Registro excluído', text: value.text || '', icon: 'success'});
+            window.location.reload();
         });
-
     });
 </script>

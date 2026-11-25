@@ -1,77 +1,39 @@
 <?= $this->extend('restrito/template/principal') ?>
-
 <?= $this->section('conteudo') ?>
-<!-- Page header -->
-<div class="page-header">
-    <div class="page-leftheader">
-        <h4 class="page-title mb-0 text-primary"><i class="fa fa-lock"></i> Alterar Senha</h4>
+<header class="page-header">
+    <div>
+        <h1 class="page-title mb-0">Alterar senha</h1>
+        <p class="page-description">Escolha uma nova senha para sua conta.</p>
     </div>
-</div>
-<!-- End Page header -->
-
-<!-- Row -->
-<div class="row">
-    <div class="card">
-        <div class="card-body">
-        <div class="col-md-6 offset-md-3">
-            <form action="<?= url_to('restrito.salvar-nova-senha') ?>" method="post" novalidate>
-                <div class="form-group">
-                    <label for="nova_senha">Nova Senha</label>
+</header>
+<section class="card account-form">
+    <div class="card-body">
+        <form action="<?= url_to('restrito.salvar-nova-senha') ?>" method="post">
+            <?php foreach (['nova_senha' => 'Nova senha', 'confirma_senha' => 'Confirmar nova senha'] as $campo => $rotulo): ?>
+                <?php $erro = validation_show_error($campo); ?>
+                <div class="mb-3">
+                    <label class="form-label" for="<?= $campo ?>"><?= $rotulo ?></label>
                     <div class="input-group">
-                        <input type="password" class="form-control <?= empty(validation_show_error('nova_senha')) ? '' : 'is-invalid' ?>" id="nova_senha" name="nova_senha" value="<?=set_value('nova_senha')?>">
-                        <div class="input-group-append">
-                            <span class="input-group-text toggle-password" data-target="#nova_senha" style="cursor:pointer;">
-                                <i class="fa fa-eye-slash"></i>
-                            </span>
-                        </div>
+                        <input type="password" id="<?= $campo ?>" name="<?= $campo ?>" class="form-control <?= $erro ? 'is-invalid' : '' ?>" required autocomplete="new-password" aria-describedby="erro-<?= $campo ?>">
+                        <button type="button" class="btn btn-outline-primary" data-password="<?= $campo ?>" aria-pressed="false">Mostrar</button>
                     </div>
-                    <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('nova_senha') ?></small>
+                    <small id="erro-<?= $campo ?>" class="text-danger"><?= $erro ?></small>
                 </div>
-
-                <div class="form-group">
-                    <label for="confirma_senha">Confirmar Nova Senha</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control <?= empty(validation_show_error('confirma_senha')) ? '' : 'is-invalid' ?>" id="confirma_senha" name="confirma_senha" value="<?=set_value('confirma_senha')?>">
-                        <div class="input-group-append">
-                            <span class="input-group-text toggle-password" data-target="#confirma_senha" style="cursor:pointer;">
-                                <i class="fa fa-eye-slash"></i>
-                            </span>
-                        </div>
-                    </div>
-                    <small class="text-danger pull-right w-100" style="text-align:right"><?= validation_show_error('confirma_senha') ?></small>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-block mt-5">
-                    <i class="fa fa-save"></i> Alterar Senha
-                </button>
-            </form>
-        </div>
+            <?php endforeach ?>
+            <button type="submit" class="btn btn-primary">Salvar nova senha</button>
+        </form>
     </div>
-    </div>
-</div>
-<!-- End Row -->
+</section>
 <?= $this->endSection() ?>
-
-<?= $this->section('css') ?>
-<!-- Adicione aqui estilos personalizados se necessário -->
-<?= $this->endSection() ?>
-
 <?= $this->section('js') ?>
 <script>
-    document.querySelectorAll('.toggle-password').forEach(function(toggle) {
-        toggle.addEventListener('click', function() {
-            const input = document.querySelector(this.getAttribute('data-target'));
-            const icon = this.querySelector('i');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            }
+    document.querySelectorAll('[data-password]').forEach(botao => {
+        botao.addEventListener('click', () => {
+            const campo = document.getElementById(botao.dataset.password);
+            const visivel = campo.type === 'password';
+            campo.type = visivel ? 'text' : 'password';
+            botao.textContent = visivel ? 'Ocultar' : 'Mostrar';
+            botao.setAttribute('aria-pressed', String(visivel));
         });
     });
 </script>

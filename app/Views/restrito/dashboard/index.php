@@ -1,277 +1,144 @@
-<?=$this->extend('restrito/template/principal')?>
-
+<?= $this->extend('restrito/template/principal') ?>
 <?= $this->section('conteudo') ?>
-<!-- Page header -->
-<div class="page-header">
-    <div class="page-leftheader">
-        <h4 class="page-title mb-0 text-primary">Dashboard</h4>
+<header class="page-header">
+    <div>
+        <h1 class="page-title mb-0">Visão geral do estoque</h1>
+        <p class="page-description">Acompanhe a operação e identifique produtos que precisam de reposição.</p>
     </div>
-</div>
+    <div class="page-actions">
+        <?php if (\App\Libraries\PermissoesEstoque::tem('entrada.criar')): ?><a class="btn btn-outline-primary" href="<?= url_to('restrito.entrada.formularioMultiplas') ?>"><i class="fa fa-arrow-down me-2" aria-hidden="true"></i>Registrar entrada</a><?php endif ?>
+        <?php if (\App\Libraries\PermissoesEstoque::tem('saida.criar')): ?><a class="btn btn-primary" href="<?= url_to('restrito.saida.formularioMultiplas') ?>"><i class="fa fa-arrow-up me-2" aria-hidden="true"></i>Registrar saída</a><?php endif ?>
+    </div>
+</header>
 
-<!-- KPIs Cards -->
-<div class="row">
-    <div class="col-md-3">
-        <div class="card text-center bg-primary text-white">
-            <div class="card-body">
-                <h6>Total de Produtos</h6>
-                <h3><?= $totalProdutos ?? 0 ?></h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-success text-white">
-            <div class="card-body">
-                <h6>Entradas (30 dias)</h6>
-                <h3><?= array_sum($graficoEntradas) ?? 0 ?></h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-danger text-white">
-            <div class="card-body">
-                <h6>Saídas (30 dias)</h6>
-                <h3><?= array_sum($graficoSaidas) ?? 0 ?></h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-warning text-white">
-            <div class="card-body">
-                <h6>Produtos abaixo do estoque</h6>
-                <h3><?= count($produtosCriticos) ?? 0 ?></h3>
-            </div>
-        </div>
-    </div>
-</div>
+<dl class="metric-grid mb-4">
+    <div class="card metric"><dt>Produtos cadastrados</dt><dd><?= number_format($totalProdutos ?? 0, 0, ',', '.') ?></dd></div>
+    <div class="card metric"><dt>Unidades recebidas · 30 dias</dt><dd><?= number_format(array_sum($graficoEntradas), 0, ',', '.') ?></dd></div>
+    <div class="card metric"><dt>Unidades retiradas · 30 dias</dt><dd><?= number_format(array_sum($graficoSaidas), 0, ',', '.') ?></dd></div>
+    <div class="card metric"><dt>Produtos abaixo do mínimo</dt><dd class="<?= empty($produtosCriticos) ? '' : 'text-danger' ?>"><?= count($produtosCriticos) ?></dd></div>
+</dl>
 
-
-<!-- Alertas -->
-<div class="card mt-4 <?=(!empty($produtosCriticos)) ? 'border-danger' : 'border-success'?>">
-    <div class="card-header <?=(!empty($produtosCriticos)) ? 'bg-danger' : 'bg-success'?> text-white">
-        <h5>⚠️ Produtos abaixo do estoque mínimo</h5>
+<section class="card" aria-labelledby="titulo-criticos">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h2 class="card-title mb-0" id="titulo-criticos">Produtos abaixo do mínimo</h2>
+        <?php if (\App\Libraries\PermissoesEstoque::tem('produto.ver')): ?><a class="btn btn-sm btn-outline-primary" href="<?= url_to('restrito.produto.index') ?>">Abrir catálogo</a><?php endif ?>
     </div>
-    <div class="card-body">
-        <?php if (!empty($produtosCriticos)) : ?>
-            <div class="table-responsive">
-                <table class="table table-bordered table-sm table-hover">
-                    <thead class="table-light">
+    <?php if ($produtosCriticos): ?>
+        <div class="table-responsive" tabindex="0" role="region" aria-label="Produtos abaixo do mínimo">
+            <table class="table">
+                <thead><tr><th scope="col">Produto</th><th scope="col">Categoria</th><th scope="col">Saldo</th><th scope="col">Mínimo</th><th scope="col">Ação</th></tr></thead>
+                <tbody>
+                    <?php foreach ($produtosCriticos as $produto): ?>
                         <tr>
-                            <th></th>
-                            <th>Código</th>
-                            <th>Produto</th>
-                            <th>Categoria</th>
-                            <th>Estoque Atual</th>
-                            <th>Estoque Mínimo</th>
+                            <td><strong><?= esc($produto['nome']) ?></strong><small class="d-block text-muted"><?= esc($produto['codigo']) ?> · <?= esc(getNomeCorProduto($produto)) ?></small></td>
+                            <td><?= esc($produto['categoria']) ?></td>
+                            <td><span class="stock-status <?= $produto['saldoEstoque'] <= 0 ? 'is-empty' : 'is-low' ?>"><?= esc($produto['saldoEstoque']) ?> un.</span></td>
+                            <td><?= esc($produto['estoque_minimo']) ?> un.</td>
+                            <td><?php if (\App\Libraries\PermissoesEstoque::tem('entrada.criar')): ?><a class="btn btn-sm btn-outline-primary" href="<?= url_to('restrito.entrada.formulario', base64_encode($produto['id_produto'])) ?>">Dar entrada</a><?php endif ?></td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php 
-                        $i=1;
-                        foreach ($produtosCriticos as $p) :
-                        ?>
-                            <tr>
-                                <td><?=$i?></td>
-                                <td><?= esc($p['codigo']) ?></td>
-                                <td>
-                                    <span style="display:inline-block;width:15px;height:15px;background-color:<?=getHexaCorProduto($p)?>;margin-right:5px;border:1px solid #000;border-radius:3px;"></span>
-                                    <?= esc($p['nome']) ?>
-                                    <small class="text-muted">(<?=getNomeCorProduto($p)?>)</small>
-                                </td>
-                                <td><?= esc($p['categoria'] ?? '') ?></td>
-                                <td class="text-danger"><strong><?= esc($p['saldoEstoque']) ?></strong></td>
-                                <td><?= esc($p['estoque_minimo']) ?></td>
-                            </tr>
-                        <?php
-                        $i++;
-                        endforeach;
-                        ?>
-                    </tbody>
-                </table>
+                    <?php endforeach ?>
+                </tbody>
+            </table>
+        </div>
+    <?php else: ?>
+        <div class="card-body"><p class="mb-0 text-muted">Nenhum produto abaixo do estoque mínimo.</p></div>
+    <?php endif ?>
+</section>
+
+<section class="card" aria-labelledby="titulo-grafico">
+    <div class="card-header"><h2 class="card-title" id="titulo-grafico">Movimentações nos últimos 30 dias</h2></div>
+    <div class="card-body">
+        <?php if (array_sum($graficoEntradas) || array_sum($graficoSaidas)): ?>
+            <div class="chart-area">
+                <canvas id="graficoMovimentacao" role="img" aria-label="Gráfico de unidades recebidas e retiradas por dia. Consulte a tabela abaixo para os valores."></canvas>
             </div>
-        <?php else : ?>
-            <p class="text-success">✔️ Nenhum produto abaixo do mínimo. Estoque saudável!</p>
-        <?php endif; ?>
+            <details class="mt-3">
+                <summary>Ver valores por dia</summary>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th scope="col">Data</th><th scope="col">Entradas</th><th scope="col">Saídas</th></tr></thead>
+                        <tbody>
+                            <?php foreach ($ultimos30Dias as $indice => $dia): ?>
+                                <tr><td><?= date('d/m/Y', strtotime($dia)) ?></td><td><?= $graficoEntradas[$indice] ?></td><td><?= $graficoSaidas[$indice] ?></td></tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        <?php else: ?>
+            <p class="text-muted mb-0">Nenhuma movimentação nos últimos 30 dias.</p>
+        <?php endif ?>
     </div>
+</section>
+
+<div class="row">
+    <?php foreach ([
+        ['Produtos mais movimentados', $topProdutos, true],
+        ['Produtos com mais saídas', $topProdutosSaidas, false],
+    ] as [$titulo, $linhas, $comEntradas]): ?>
+        <div class="col-xl-6">
+            <section class="card">
+                <div class="card-header"><h2 class="card-title"><?= $titulo ?></h2></div>
+                <?php if ($linhas): ?>
+                    <div class="table-responsive" tabindex="0" role="region" aria-label="<?= $titulo ?>">
+                        <table class="table">
+                            <thead><tr><th scope="col">Produto</th><?php if ($comEntradas): ?><th scope="col">Entradas</th><?php endif ?><th scope="col">Saídas</th></tr></thead>
+                            <tbody>
+                                <?php foreach ($linhas as $produto): ?>
+                                    <tr>
+                                        <td><?= esc($produto['nome']) ?><small class="d-block text-muted"><?= esc($produto['categoria']) ?> · <?= esc(getNomeCorProduto($produto)) ?></small></td>
+                                        <?php if ($comEntradas): ?><td><?= esc($produto['entradas']) ?></td><?php endif ?>
+                                        <td><?= esc($produto['saidas']) ?></td>
+                                    </tr>
+                                <?php endforeach ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <div class="card-body"><p class="text-muted mb-0">Sem registros no período.</p></div>
+                <?php endif ?>
+            </section>
+        </div>
+    <?php endforeach ?>
 </div>
 
-<!-- Gráfico (placeholder) -->
-<div class="card mt-4">
-    <div class="card-header bg-primary text-white">
-        <h5>📊 Movimentação dos últimos 30 dias</h5>
-    </div>
-    <div class="card-body">
-        <canvas id="graficoMovimentacao"></canvas>
-    </div>
+<div class="row">
+    <?php foreach ([
+        ['Motivos de saída · 30 dias', $motivosSaidas30d, 'motivo_saida', 'total', 'un.'],
+        ['Produtos por categoria', $categoriasQtd, 'categoria', 'qtd', 'prod.'],
+    ] as [$titulo, $linhas, $rotulo, $valor, $unidade]): ?>
+        <div class="col-lg-6">
+            <section class="card">
+                <div class="card-header"><h2 class="card-title"><?= $titulo ?></h2></div>
+                <?php if ($linhas): ?>
+                    <ul class="list-group list-group-flush">
+                        <?php foreach ($linhas as $linha): ?>
+                            <li class="list-group-item d-flex justify-content-between gap-2"><span><?= esc($linha[$rotulo]) ?></span><strong class="text-nowrap"><?= esc($linha[$valor]) ?> <?= $unidade ?></strong></li>
+                        <?php endforeach ?>
+                    </ul>
+                <?php else: ?>
+                    <div class="card-body"><p class="text-muted mb-0">Sem registros para exibir.</p></div>
+                <?php endif ?>
+            </section>
+        </div>
+    <?php endforeach ?>
 </div>
-
-
-<div class="card mt-4">
-    <div class="card-header bg-secondary text-white">
-        <h5>📦 Motivos de Saída (últimos 30 dias)</h5>
-    </div>
-    <div class="card-body">
-        <?php if (!empty($motivosSaidas30d)) : ?>
-            <ul class="list-group">
-                <?php foreach ($motivosSaidas30d as $motivo) : ?>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <?= esc($motivo['motivo_saida']) ?>
-                        <span class="badge border-primary text-dark col-1" style="font-size: 12px;"><?= esc($motivo['total']) ?> itens</span>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php else : ?>
-            <p class="text-muted">Sem saídas registradas nos últimos 30 dias.</p>
-        <?php endif; ?>
-    </div>
-</div>
-
-
-<!-- Top produtos -->
-<div class="card mt-4">
-    <div class="card-header bg-success text-white">
-        <h5>🏆 Top 5 Produtos com Mais Saídas</h5>
-    </div>
-
-    <div class="card-body table-responsive">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Produto</th>
-                    <th>Categoria</th>
-                    <th>Saídas</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                if(isset($topProdutosSaidas) && !empty($topProdutosSaidas)):
-                    foreach ($topProdutosSaidas as $p) : ?>
-                    <tr>
-                        <td>
-                            <span style="display:inline-block;width:15px;height:15px;background-color:<?=getHexaCorProduto($p)?>;margin-right:5px;border:1px solid #000;border-radius:3px;"></span>
-                            <?= esc($p['nome']) ?>
-                            <small class="text-muted">(<?=getNomeCorProduto($p)?>)</small>
-                        </td>
-                        <td><?= esc($p['categoria']) ?></td>
-                        <td><?= esc($p['saidas']) ?></td>
-                    </tr>
-                    <?php 
-                    endforeach;
-                endif;
-                ?>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-
-<div class="card mt-4">
-    <div class="card-header bg-info text-white">
-        <h5><i class="fa fa-refresh"></i> Top 5 Produtos Mais Movimentados</h5>
-    </div>
-
-    <div class="card-body table-responsive">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Produto</th>
-                    <th>Categoria</th>
-                    <th>Entradas</th>
-                    <th>Saídas</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                if(isset($topProdutos) && !empty($topProdutos)):
-                    foreach ($topProdutos as $p) : ?>
-                    <tr>
-                        <td>
-                            <span style="display:inline-block;width:15px;height:15px;background-color:<?=getHexaCorProduto($p)?>;margin-right:5px;border:1px solid #000;border-radius:3px;"></span>
-                            <?= esc($p['nome']) ?>
-                            <small class="text-muted">(<?=getNomeCorProduto($p)?>)</small>
-                        </td>
-                        <td><?= esc($p['categoria']) ?></td>
-                        <td><?= esc($p['entradas']) ?></td>
-                        <td><?= esc($p['saidas']) ?></td>
-                    </tr>
-                    <?php 
-                    endforeach;
-                endif;
-                ?>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-
-<!-- Quantitativo por Categoria -->
-<div class="card mt-4">
-    <div class="card-header bg-primary text-white">
-        <h5>Produtos por Categoria</h5>
-    </div>
-    <div class="card-body">
-        <?php if (!empty($categoriasQtd)) : ?>
-            <ul class="list-group">
-                <?php foreach ($categoriasQtd as $cat) : ?>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <?= esc($cat['categoria']) ?>
-                        <span class="badge border-primary text-dark rounded-pill" style="font-size: 12px;"><?= esc($cat['qtd']) ?> produtos</span>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php else : ?>
-            <p>⚠️ Nenhuma categoria cadastrada.</p>
-        <?php endif; ?>
-    </div>
-</div>
-
 <?= $this->endSection() ?>
-
-<?= $this->section('css') ?>
-<style>
-.card h3 {
-    margin: 0;
-    font-size: 2rem;
-}
-</style>
-<?= $this->endSection() ?>
-
 <?= $this->section('js') ?>
+<?php if (array_sum($graficoEntradas) || array_sum($graficoSaidas)): ?>
 <script src="/assets/plugins/chart/chart.min.js"></script>
-
 <script>
-$(document).ready(function() {
-    const ctx = document.getElementById('graficoMovimentacao').getContext('2d');
-    const grafico = new Chart(ctx, {
+    new Chart(document.getElementById('graficoMovimentacao'), {
         type: 'line',
         data: {
-            labels: <?= json_encode($ultimos30Dias) ?>,
+            labels: <?= json_encode(array_map(static fn ($dia) => date('d/m', strtotime($dia)), $ultimos30Dias)) ?>,
             datasets: [
-                {
-                    label: 'Entradas',
-                    data: <?= json_encode($graficoEntradas) ?>,
-                    borderColor: 'green',
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Saídas',
-                    data: <?= json_encode($graficoSaidas) ?>,
-                    borderColor: 'red',
-                    fill: false,
-                    tension: 0.1
-                }
+                {label: 'Entradas', data: <?= json_encode($graficoEntradas) ?>, borderColor: '#1756a1', pointRadius: 1, fill: false},
+                {label: 'Saídas', data: <?= json_encode($graficoSaidas) ?>, borderColor: '#a55421', borderDash: [5, 4], pointRadius: 1, fill: false}
             ]
         },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
+        options: {responsive: true, maintainAspectRatio: false}
     });
-});
 </script>
-
+<?php endif ?>
 <?= $this->endSection() ?>

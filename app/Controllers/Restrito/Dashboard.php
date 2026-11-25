@@ -6,7 +6,6 @@ use App\Controllers\BaseController;
 use App\Models\TbProduto;
 use App\Models\TbProdutoEntrada;
 use App\Models\TbProdutoSaida;
-use App\Models\RefCategoria;
 
 class Dashboard extends BaseController
 {
@@ -15,14 +14,15 @@ class Dashboard extends BaseController
         $tbProduto = new TbProduto();
         $tbEntrada = new TbProdutoEntrada();
         $tbSaida = new TbProdutoSaida();
-        $refCategoria = new RefCategoria();
+        $inicio = date('Y-m-d', strtotime('-29 days'));
+        $fim = date('Y-m-d') . ' 23:59:59';
 
         // Total de produtos
         $totalProdutos = $tbProduto->countAllResults();
 
         // Total de entradas e saídas nos últimos 30 dias
-        $totalEntradas30d = $tbEntrada->where('data_entrada >=', date('Y-m-d', strtotime('-30 days')))->countAllResults();
-        $totalSaidas30d = $tbSaida->where('data_saida >=', date('Y-m-d', strtotime('-30 days')))->countAllResults();
+        $totalEntradas30d = $tbEntrada->where('data_entrada >=', $inicio)->where('data_entrada <=', $fim)->countAllResults();
+        $totalSaidas30d = $tbSaida->where('data_saida >=', $inicio)->where('data_saida <=', $fim)->countAllResults();
 
         // Produtos abaixo do estoque mínimo
         $produtosCriticos = $tbProduto
@@ -36,35 +36,44 @@ class Dashboard extends BaseController
         $categoriasQtd = $tbProduto
             ->select('ref_categoria.categoria, COUNT(tb_produto.id_produto) as qtd')
             ->join('ref_categoria', 'ref_categoria.id_categoria = tb_produto.id_categoria')
-            ->groupBy('tb_produto.id_categoria')
+            ->groupBy(['tb_produto.id_categoria', 'ref_categoria.categoria'])
             ->findAll();
 
-        // Top 5 produtos mais movimentados (entradas + saídas)
+        $entradas = $tbEntrada->builder()->where('deleted_at', null)
+            ->where('data_entrada >=', $inicio)->where('data_entrada <=', $fim);
+        $saidas = $tbSaida->builder()->where('deleted_at', null)
+            ->where('data_saida >=', $inicio)->where('data_saida <=', $fim);
+        $entradasPorProduto = (clone $entradas)->select('id_produto')->selectSum('quantidade')
+            ->groupBy('id_produto')->getCompiledSelect();
+        $saidasPorProduto = (clone $saidas)->select('id_produto')->selectSum('quantidade')
+            ->groupBy('id_produto')->getCompiledSelect();
+
         $topProdutos = $tbProduto
-        ->select('tb_produto.id_produto, tb_produto.nome, ref_categoria.categoria, tb_produto.json,
-                  COALESCE(SUM(e.quantidade),0) as entradas,
-                  COALESCE(SUM(s.quantidade),0) as saidas,
-                  (COALESCE(SUM(e.quantidade),0) + COALESCE(SUM(s.quantidade),0)) as total_movimentado')
+        ->select('tb_produto.id_produto, tb_produto.nome, ref_categoria.categoria, tb_produto.id_cor,
+                  COALESCE(e.quantidade, 0) AS entradas, COALESCE(s.quantidade, 0) AS saidas,
+                  (COALESCE(e.quantidade, 0) + COALESCE(s.quantidade, 0)) AS total_movimentado', false)
         ->join('ref_categoria', 'ref_categoria.id_categoria = tb_produto.id_categoria')
-        ->join('tb_produto_entrada e', 'e.id_produto = tb_produto.id_produto AND e.data_entrada >= "' . date('Y-m-d', strtotime('-30 days')) . '"', 'left')
-        ->join('tb_produto_saida s', 's.id_produto = tb_produto.id_produto AND s.data_saida >= "' . date('Y-m-d', strtotime('-30 days')) . '"', 'left')
-        ->groupBy('tb_produto.id_produto, tb_produto.nome, ref_categoria.categoria, tb_produto.json')
+        ->join('(' . $entradasPorProduto . ') e', 'e.id_produto = tb_produto.id_produto', 'left', false)
+        ->join('(' . $saidasPorProduto . ') s', 's.id_produto = tb_produto.id_produto', 'left', false)
+        ->having('total_movimentado >', 0)
         ->orderBy('total_movimentado', 'DESC')
         ->limit(5)
         ->findAll();
 
         $topProdutosSaidas = $tbProduto
-        ->select('tb_produto.id_produto, tb_produto.nome, ref_categoria.categoria, tb_produto.json,
-                  COALESCE(SUM(s.quantidade), 0) as saidas')
+        ->select('tb_produto.id_produto, tb_produto.nome, ref_categoria.categoria, tb_produto.id_cor, s.quantidade AS saidas')
         ->join('ref_categoria', 'ref_categoria.id_categoria = tb_produto.id_categoria')
-        ->join('tb_produto_saida s', 's.id_produto = tb_produto.id_produto AND s.data_saida >= "' . date('Y-m-d', strtotime('-30 days')) . '"', 'left')
-        ->groupBy('tb_produto.id_produto, tb_produto.nome, ref_categoria.categoria, tb_produto.json')
+        ->join('(' . $saidasPorProduto . ') s', 's.id_produto = tb_produto.id_produto', 'inner', false)
         ->orderBy('saidas', 'DESC')
         ->limit(5)
         ->findAll();
 
-        // Gráfico (últimos 7 dias)
-        $graficoLabels = [];
+        $entradasPorDia = $entradas->select('DATE(data_entrada) AS dia', false)->selectSum('quantidade')
+            ->groupBy('DATE(data_entrada)', false)->get()->getResultArray();
+        $saidasPorDia = $saidas->select('DATE(data_saida) AS dia', false)->selectSum('quantidade')
+            ->groupBy('DATE(data_saida)', false)->get()->getResultArray();
+        $entradasPorDia = array_column($entradasPorDia, 'quantidade', 'dia');
+        $saidasPorDia = array_column($saidasPorDia, 'quantidade', 'dia');
         $graficoEntradas = [];
         $graficoSaidas = [];
 
@@ -74,22 +83,19 @@ class Dashboard extends BaseController
         }
         
         foreach ($ultimos30Dias as $dia) {
-            $entrada = $tbEntrada->selectSum('quantidade')->where('DATE(data_entrada)', $dia)->get()->getRow();
-            $saida = $tbSaida->selectSum('quantidade')->where('DATE(data_saida)', $dia)->get()->getRow();
-        
-            $graficoEntradas[] = (int)($entrada->quantidade ?? 0);
-            $graficoSaidas[] = (int)($saida->quantidade ?? 0);
+            $graficoEntradas[] = (int) ($entradasPorDia[$dia] ?? 0);
+            $graficoSaidas[] = (int) ($saidasPorDia[$dia] ?? 0);
         }
 
 
         $motivosSaidas30d = $tbSaida
             ->select('ref_motivo_saida.motivo_saida, SUM(tb_produto_saida.quantidade) as total')
             ->join('ref_motivo_saida', 'ref_motivo_saida.id_motivo_saida = tb_produto_saida.id_motivo_saida')
-            ->where('tb_produto_saida.data_saida >=', date('Y-m-d', strtotime('-30 days')))
-            ->groupBy('ref_motivo_saida.id_motivo_saida')
+            ->where('tb_produto_saida.data_saida >=', $inicio)
+            ->where('tb_produto_saida.data_saida <=', $fim)
+            ->groupBy(['ref_motivo_saida.id_motivo_saida', 'ref_motivo_saida.motivo_saida'])
             ->orderBy('total', 'DESC')
-            ->get()
-            ->getResultArray();
+            ->findAll();
 
         return view('restrito/dashboard/index', [
             'totalProdutos'      => $totalProdutos,
@@ -99,7 +105,6 @@ class Dashboard extends BaseController
             'categoriasQtd'      => $categoriasQtd,
             'topProdutos'        => $topProdutos,
             'topProdutosSaidas'  => $topProdutosSaidas,
-            'graficoLabels'      => $graficoLabels,
             'graficoEntradas'    => $graficoEntradas,
             'graficoSaidas'      => $graficoSaidas,
             'motivosSaidas30d'   => $motivosSaidas30d,

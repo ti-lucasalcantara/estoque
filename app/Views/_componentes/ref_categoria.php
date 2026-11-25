@@ -4,8 +4,8 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h6 class="modal-title" id="modalRefCategoriaLabel">Criar Categoria</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">x</button>
+                <h2 class="modal-title h5" id="modalRefCategoriaLabel">Nova categoria</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
                 <form id="formRefCategoria" method="POST">
@@ -19,7 +19,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"><i class="fa fa-remove"></i> Fechar</button>
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" id="sendFormRefCategoria" class="btn btn-primary"><i class="fa fa-check"></i> Salvar</button>
             </div>
         </div>

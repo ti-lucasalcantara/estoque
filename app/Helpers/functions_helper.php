@@ -112,6 +112,9 @@ if ( ! function_exists('getDataExtenso') ){
 if ( ! function_exists('getIdNameTabela') ){
     function getIdNameTabela( $tabela=null ) {
         switch ($tabela) {
+            case 'ref_caracteristica':
+                return 'id_caracteristica';
+
             case 'ref_categoria':
                 return 'id_categoria';
                 break;
