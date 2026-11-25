@@ -23,7 +23,7 @@ foreach ($secoes as [$rotulo, $icone, $rota, $prefixo]) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f4f7fa">
+    <meta name="theme-color" content="#faf7f4">
     <title><?= esc($secaoAtual) ?> | <?= esc(NAME_APP) ?></title>
     <link rel="icon" href="/favicon.png" type="image/png">
     <link rel="stylesheet" href="/assets/plugins/bootstrap/css/bootstrap.min.css">
@@ -36,16 +36,47 @@ foreach ($secoes as [$rotulo, $icone, $rota, $prefixo]) {
 </head>
 <body class="estoque-app">
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-    <aside class="offcanvas offcanvas-start workspace-menu" tabindex="-1" id="menuEstoque" aria-labelledby="marcaEstoque">
-        <div class="workspace-brand">
-            <a class="brand" id="marcaEstoque" href="<?= url_to('restrito.dashboard.index') ?>">
-                <span class="brand-symbol" aria-hidden="true"><i class="fa fa-cubes"></i></span>
-                <span><strong>Móveis Carvalho</strong><small>Gestão de estoque</small></span>
+    <header class="workspace-header">
+        <div class="workspace-header-inner">
+            <div class="workspace-brand workspace-brand-desktop">
+                <a class="brand" href="<?= url_to('restrito.dashboard.index') ?>">
+                    <?= $this->include('_componentes/marca-carvalho') ?>
+                </a>
+                <button class="btn btn-outline-primary workspace-menu-toggle" id="alternar-menu" type="button"
+                    aria-controls="menuEstoque" aria-expanded="true" aria-label="Recolher menu lateral" title="Recolher menu lateral">
+                    <i class="fa fa-bars" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="workspace-location">
+                <button class="btn btn-outline-primary d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuEstoque" aria-controls="menuEstoque" aria-label="Abrir menu">
+                    <i class="fa fa-bars" aria-hidden="true"></i>
+                </button>
+                <span><?= esc($secaoAtual) ?></span>
+            </div>
+            <div class="dropdown">
+                <button type="button" class="btn account-button dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu da conta">
+                    <span class="account-avatar"><i class="fa fa-user" aria-hidden="true"></i></span>
+                    <span class="account-name"><?= esc($usuario['nome'] ?? 'Minha conta') ?></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><span class="dropdown-header"><?= esc($usuario['cargo'] ?? '') ?></span></li>
+                    <li><a class="dropdown-item" href="<?= url_to('restrito.resetar-senha') ?>">Alterar senha</a></li>
+                <li>
+                    <form method="post" action="<?= url_to('sair') ?>">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="dropdown-item">Sair</button>
+                    </form>
+                </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <aside class="offcanvas offcanvas-start workspace-menu" tabindex="-1" id="menuEstoque" aria-label="Menu lateral">
+        <div class="workspace-brand d-lg-none">
+            <a class="brand" href="<?= url_to('restrito.dashboard.index') ?>">
+                <?= $this->include('_componentes/marca-carvalho') ?>
+                <small>Gestão de estoque</small>
             </a>
-            <button class="btn btn-outline-primary workspace-menu-hide" id="ocultar-menu" type="button"
-                aria-controls="menuEstoque" aria-expanded="true" aria-label="Ocultar menu lateral" title="Ocultar menu lateral">
-                <i class="fa fa-angle-double-left" aria-hidden="true"></i>
-            </button>
             <button class="btn-close d-lg-none" type="button" data-bs-dismiss="offcanvas" aria-label="Fechar menu"></button>
         </div>
         <nav class="workspace-nav" aria-label="Menu principal">
@@ -57,33 +88,7 @@ foreach ($secoes as [$rotulo, $icone, $rota, $prefixo]) {
             <?php endforeach ?>
         </nav>
     </aside>
-
     <div class="workspace">
-        <header class="workspace-header">
-            <div class="workspace-header-inner">
-                <div class="workspace-location">
-                    <button class="btn btn-outline-primary workspace-menu-show" id="mostrar-menu" type="button"
-                        aria-controls="menuEstoque" aria-expanded="false" aria-label="Mostrar menu lateral" title="Mostrar menu lateral">
-                        <i class="fa fa-bars" aria-hidden="true"></i>
-                    </button>
-                    <button class="btn btn-outline-primary d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuEstoque" aria-controls="menuEstoque" aria-label="Abrir menu">
-                        <i class="fa fa-bars" aria-hidden="true"></i>
-                    </button>
-                    <span><?= esc($secaoAtual) ?></span>
-                </div>
-                <div class="dropdown">
-                    <button type="button" class="btn account-button dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu da conta">
-                        <span class="account-avatar"><i class="fa fa-user" aria-hidden="true"></i></span>
-                        <span class="account-name"><?= esc($usuario['nome'] ?? 'Minha conta') ?></span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><span class="dropdown-header"><?= esc($usuario['cargo'] ?? '') ?></span></li>
-                        <li><a class="dropdown-item" href="<?= url_to('restrito.resetar-senha') ?>">Alterar senha</a></li>
-                        <li><a class="dropdown-item" href="<?= url_to('sair') ?>">Sair</a></li>
-                    </ul>
-                </div>
-            </div>
-        </header>
         <main class="workspace-content" id="conteudo" tabindex="-1">
             <?= $this->renderSection('conteudo') ?>
         </main>
@@ -98,29 +103,28 @@ foreach ($secoes as [$rotulo, $icone, $rota, $prefixo]) {
 
         <script>
             const menuDesktop = window.matchMedia('(min-width: 992px)');
-            const ocultarMenu = document.getElementById('ocultar-menu');
-            const mostrarMenu = document.getElementById('mostrar-menu');
+            const alternarMenu = document.getElementById('alternar-menu');
             const chaveMenu = 'estoque.menuLateralOculto';
 
             function ajustarMenuLateral(oculto) {
                 document.body.classList.toggle('workspace-menu-hidden', oculto);
-                ocultarMenu.setAttribute('aria-expanded', String(!oculto));
-                mostrarMenu.setAttribute('aria-expanded', String(!oculto));
+                alternarMenu.setAttribute('aria-expanded', String(!oculto));
+                const rotulo = oculto ? 'Expandir menu lateral' : 'Recolher menu lateral';
+                alternarMenu.setAttribute('aria-label', rotulo);
+                alternarMenu.title = rotulo;
             }
 
             try {
                 ajustarMenuLateral(localStorage.getItem(chaveMenu) === 'true');
             } catch {}
 
-            for (const [botao, oculto] of [[ocultarMenu, true], [mostrarMenu, false]]) {
-                botao.addEventListener('click', () => {
-                    ajustarMenuLateral(oculto);
-                    try {
-                        localStorage.setItem(chaveMenu, String(oculto));
-                    } catch {}
-                    (oculto ? mostrarMenu : ocultarMenu).focus();
-                });
-            }
+            alternarMenu.addEventListener('click', () => {
+                const oculto = alternarMenu.getAttribute('aria-expanded') === 'true';
+                ajustarMenuLateral(oculto);
+                try {
+                    localStorage.setItem(chaveMenu, String(oculto));
+                } catch {}
+            });
 
             menuDesktop.addEventListener('change', ({matches}) => {
                 if (matches) bootstrap.Offcanvas.getInstance(document.getElementById('menuEstoque'))?.hide();

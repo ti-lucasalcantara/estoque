@@ -29,6 +29,7 @@ class Dashboard extends BaseController
             ->select('tb_produto.*, fn_saldo_estoque(tb_produto.id_produto) AS saldoEstoque, ref_categoria.categoria')
             ->join('ref_categoria', 'ref_categoria.id_categoria=tb_produto.id_categoria')
             ->having('saldoEstoque < estoque_minimo')
+            ->orderBy('saldoEstoque', 'ASC')
             ->orderBy('tb_produto.nome', 'ASC')
             ->findAll();
 

@@ -10,8 +10,9 @@ $routes->get('/', 'Home::index');
 
 // Login
 $routes->get('login', 'Login::index', ['as' => 'login']);
-$routes->post('login', 'Login::entrar', ['as' => 'login']);
-$routes->get('sair', 'Login::sair', ['as' => 'sair']);
+$routes->post('login', 'Login::entrar', ['as' => 'login', 'filter' => 'csrf']);
+$routes->addRedirect('login/bloqueio', 'login', 302);
+$routes->post('sair', 'Login::sair', ['as' => 'sair', 'filter' => 'csrf']);
 
 
 $routes->group('restrito', ['namespace' => 'App\Controllers\Restrito'], static function ($routes) {

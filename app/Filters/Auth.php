@@ -2,6 +2,7 @@
 
 namespace App\Filters;
 
+use App\Libraries\AcessoLembrado;
 use App\Libraries\PermissoesEstoque;
 use App\Models\TbUsuario;
 use CodeIgniter\Filters\FilterInterface;
@@ -28,11 +29,16 @@ class Auth implements FilterInterface
     public function before(RequestInterface $request, $arguments = null)
     {
         $usuario_logado = session('usuario_logado');
+        $usuario = null;
+        if (empty($usuario_logado)) {
+            $usuario = AcessoLembrado::restaurar($request);
+            $usuario_logado = session('usuario_logado');
+        }
         if ( empty($usuario_logado) ){
             session()->setFlashdata( getMessageFail('toast', ['title' => 'Acesso negado!', 'text' => 'Entre com seu usuário e senha']) );
             return redirect()->route('login');
         }
-        $usuario = (new TbUsuario())->find($usuario_logado['id_usuario']);
+        $usuario ??= (new TbUsuario())->find($usuario_logado['id_usuario']);
         if (!$usuario || !$usuario['ativo']) {
             session()->remove('usuario_logado');
             session()->setFlashdata( getMessageFail('toast', ['title' => 'Acesso negado!', 'text' => 'Usuário sem acesso para acessar o sistema']) );

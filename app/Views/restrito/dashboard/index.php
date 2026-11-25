@@ -1,21 +1,39 @@
 <?= $this->extend('restrito/template/principal') ?>
 <?= $this->section('conteudo') ?>
+<?php
+$podeRegistrarEntrada = \App\Libraries\PermissoesEstoque::tem('entrada.criar');
+$recebidas = array_sum($graficoEntradas);
+$retiradas = array_sum($graficoSaidas);
+$temMovimentacao = $recebidas || $retiradas;
+$indicadores = [
+    ['Produtos cadastrados', $totalProdutos ?? 0, 'cubes', false],
+    ['Unidades recebidas', $recebidas, 'arrow-down', false],
+    ['Unidades retiradas', $retiradas, 'arrow-up', false],
+    ['Abaixo do mínimo', count($produtosCriticos), 'exclamation-circle', !empty($produtosCriticos)],
+];
+?>
+<div class="dashboard">
 <header class="page-header">
     <div>
         <h1 class="page-title mb-0">Visão geral do estoque</h1>
         <p class="page-description">Acompanhe a operação e identifique produtos que precisam de reposição.</p>
     </div>
     <div class="page-actions">
-        <?php if (\App\Libraries\PermissoesEstoque::tem('entrada.criar')): ?><a class="btn btn-outline-primary" href="<?= url_to('restrito.entrada.formularioMultiplas') ?>"><i class="fa fa-arrow-down me-2" aria-hidden="true"></i>Registrar entrada</a><?php endif ?>
+        <?php if ($podeRegistrarEntrada): ?><a class="btn btn-outline-primary" href="<?= url_to('restrito.entrada.formularioMultiplas') ?>"><i class="fa fa-arrow-down me-2" aria-hidden="true"></i>Registrar entrada</a><?php endif ?>
         <?php if (\App\Libraries\PermissoesEstoque::tem('saida.criar')): ?><a class="btn btn-primary" href="<?= url_to('restrito.saida.formularioMultiplas') ?>"><i class="fa fa-arrow-up me-2" aria-hidden="true"></i>Registrar saída</a><?php endif ?>
     </div>
 </header>
 
 <dl class="metric-grid mb-4">
-    <div class="card metric"><dt>Produtos cadastrados</dt><dd><?= number_format($totalProdutos ?? 0, 0, ',', '.') ?></dd></div>
-    <div class="card metric"><dt>Unidades recebidas · 30 dias</dt><dd><?= number_format(array_sum($graficoEntradas), 0, ',', '.') ?></dd></div>
-    <div class="card metric"><dt>Unidades retiradas · 30 dias</dt><dd><?= number_format(array_sum($graficoSaidas), 0, ',', '.') ?></dd></div>
-    <div class="card metric"><dt>Produtos abaixo do mínimo</dt><dd class="<?= empty($produtosCriticos) ? '' : 'text-danger' ?>"><?= count($produtosCriticos) ?></dd></div>
+    <?php foreach ($indicadores as [$rotulo, $valor, $icone, $atencao]): ?>
+        <div class="card metric<?= $atencao ? ' metric-attention' : '' ?>">
+            <dt><i class="fa fa-<?= $icone ?>" aria-hidden="true"></i><?= $rotulo ?></dt>
+            <dd><?= number_format($valor, 0, ',', '.') ?></dd>
+            <?php if ($icone === 'arrow-down' || $icone === 'arrow-up'): ?>
+                <dd class="metric-period">Últimos 30 dias</dd>
+            <?php endif ?>
+        </div>
+    <?php endforeach ?>
 </dl>
 
 <section class="card" aria-labelledby="titulo-criticos">
@@ -26,15 +44,15 @@
     <?php if ($produtosCriticos): ?>
         <div class="table-responsive" tabindex="0" role="region" aria-label="Produtos abaixo do mínimo">
             <table class="table">
-                <thead><tr><th scope="col">Produto</th><th scope="col">Categoria</th><th scope="col">Saldo</th><th scope="col">Mínimo</th><th scope="col">Ação</th></tr></thead>
+                <thead><tr><th scope="col">Produto</th><th scope="col">Saldo</th><th scope="col">Mínimo</th><th scope="col">Faltam</th><?php if ($podeRegistrarEntrada): ?><th scope="col">Ação</th><?php endif ?></tr></thead>
                 <tbody>
                     <?php foreach ($produtosCriticos as $produto): ?>
                         <tr>
-                            <td><strong><?= esc($produto['nome']) ?></strong><small class="d-block text-muted"><?= esc($produto['codigo']) ?> · <?= esc(getNomeCorProduto($produto)) ?></small></td>
-                            <td><?= esc($produto['categoria']) ?></td>
+                            <th scope="row"><strong><?= esc($produto['nome']) ?></strong><small class="d-block text-muted"><?= esc($produto['categoria']) ?> · <?= esc($produto['codigo']) ?> · <?= esc(getNomeCorProduto($produto)) ?></small></th>
                             <td><span class="stock-status <?= $produto['saldoEstoque'] <= 0 ? 'is-empty' : 'is-low' ?>"><?= esc($produto['saldoEstoque']) ?> un.</span></td>
                             <td><?= esc($produto['estoque_minimo']) ?> un.</td>
-                            <td><?php if (\App\Libraries\PermissoesEstoque::tem('entrada.criar')): ?><a class="btn btn-sm btn-outline-primary" href="<?= url_to('restrito.entrada.formulario', base64_encode($produto['id_produto'])) ?>">Dar entrada</a><?php endif ?></td>
+                            <td class="text-nowrap fw-semibold"><?= esc($produto['estoque_minimo'] - $produto['saldoEstoque']) ?> un.</td>
+                            <?php if ($podeRegistrarEntrada): ?><td><a class="btn btn-sm btn-outline-primary text-nowrap" href="<?= url_to('restrito.entrada.formulario', base64_encode($produto['id_produto'])) ?>">Dar entrada</a></td><?php endif ?>
                         </tr>
                     <?php endforeach ?>
                 </tbody>
@@ -46,9 +64,12 @@
 </section>
 
 <section class="card" aria-labelledby="titulo-grafico">
-    <div class="card-header"><h2 class="card-title" id="titulo-grafico">Movimentações nos últimos 30 dias</h2></div>
+    <div class="card-header">
+        <h2 class="card-title mb-1" id="titulo-grafico">Movimentações nos últimos 30 dias</h2>
+        <p class="text-muted small mb-0"><?= date('d/m/Y', strtotime($ultimos30Dias[0])) ?> a <?= date('d/m/Y', strtotime($ultimos30Dias[count($ultimos30Dias) - 1])) ?></p>
+    </div>
     <div class="card-body">
-        <?php if (array_sum($graficoEntradas) || array_sum($graficoSaidas)): ?>
+        <?php if ($temMovimentacao): ?>
             <div class="chart-area">
                 <canvas id="graficoMovimentacao" role="img" aria-label="Gráfico de unidades recebidas e retiradas por dia. Consulte a tabela abaixo para os valores."></canvas>
             </div>
@@ -123,9 +144,10 @@
         </div>
     <?php endforeach ?>
 </div>
+</div>
 <?= $this->endSection() ?>
 <?= $this->section('js') ?>
-<?php if (array_sum($graficoEntradas) || array_sum($graficoSaidas)): ?>
+<?php if ($temMovimentacao): ?>
 <script src="/assets/plugins/chart/chart.min.js"></script>
 <script>
     new Chart(document.getElementById('graficoMovimentacao'), {
@@ -133,11 +155,20 @@
         data: {
             labels: <?= json_encode(array_map(static fn ($dia) => date('d/m', strtotime($dia)), $ultimos30Dias)) ?>,
             datasets: [
-                {label: 'Entradas', data: <?= json_encode($graficoEntradas) ?>, borderColor: '#1756a1', pointRadius: 1, fill: false},
-                {label: 'Saídas', data: <?= json_encode($graficoSaidas) ?>, borderColor: '#a55421', borderDash: [5, 4], pointRadius: 1, fill: false}
+                {label: 'Entradas', data: <?= json_encode($graficoEntradas) ?>, borderColor: '#454545', pointRadius: 0, fill: false, lineTension: 0},
+                {label: 'Saídas', data: <?= json_encode($graficoSaidas) ?>, borderColor: '#8b6018', borderDash: [5, 4], pointRadius: 0, fill: false, lineTension: 0}
             ]
         },
-        options: {responsive: true, maintainAspectRatio: false}
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {duration: 0},
+            tooltips: {mode: 'index', intersect: false},
+            scales: {
+                xAxes: [{gridLines: {display: false}, ticks: {maxTicksLimit: 7, maxRotation: 0}}],
+                yAxes: [{ticks: {beginAtZero: true, precision: 0}}]
+            }
+        }
     });
 </script>
 <?php endif ?>
