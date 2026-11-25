@@ -1,5 +1,6 @@
 
 :root {
+    color-scheme: only light;
     --brand-red: #ed5555;
     --brand-gray: #999999;
     --brand-gold: #f9ba45;
@@ -82,7 +83,15 @@ a { color: var(--primary); }
 }
 .form-guidance i { flex: none; margin-top: .25rem; }
 .form-control, .form-select, .input-group-text { border-color: #bcb2ad; color: var(--ink); border-radius: 8px; min-height: 42px; }
+.form-control:-webkit-autofill {
+    -webkit-text-fill-color: var(--ink);
+    caret-color: var(--ink);
+    box-shadow: inset 0 0 0 1000px var(--canvas);
+}
 .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 .2rem var(--focus-shadow); }
+.form-control:-webkit-autofill:focus {
+    box-shadow: inset 0 0 0 1000px var(--canvas), 0 0 0 .2rem var(--focus-shadow);
+}
 textarea.form-control { min-height: 88px; }
 .select2-container { max-width: 100%; }
 .select2-container--default .select2-selection--single,
@@ -366,6 +375,9 @@ body.estoque-login {
     box-shadow: none;
 }
 .login-card .form-control:not(.is-invalid):focus { border-color: var(--primary); }
+.login-card .form-control:-webkit-autofill:focus-visible {
+    box-shadow: inset 0 0 0 1000px var(--canvas);
+}
 .login-card .btn-primary:active { background: var(--primary-dark); border-color: var(--primary-dark); }
 .login-card .btn-outline-primary:active { color: var(--primary-dark); background: var(--primary-soft); border-color: var(--primary); }
 .login-card .btn-primary:disabled { background: var(--primary); border-color: var(--primary); }

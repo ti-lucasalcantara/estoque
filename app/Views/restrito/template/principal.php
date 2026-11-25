@@ -23,7 +23,8 @@ foreach ($secoes as [$rotulo, $icone, $rota, $prefixo]) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#faf7f4">
+    <meta name="color-scheme" content="only light">
+    <meta name="theme-color" content="#ffffff">
     <title><?= esc($secaoAtual) ?> | <?= esc(NAME_APP) ?></title>
     <link rel="icon" href="/favicon.png" type="image/png">
     <link rel="stylesheet" href="/assets/plugins/bootstrap/css/bootstrap.min.css">
